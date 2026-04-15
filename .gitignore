@@ -1,6 +1,14 @@
 # Compiled class files
 *.class
 
+# Maven build folder (CRITICAL)
+target/
+
+# Local H2 Database files (CRITICAL)
+data/
+*.db
+*.mv.db
+
 # Log files
 *.log
 
