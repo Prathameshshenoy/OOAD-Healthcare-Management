@@ -21,7 +21,6 @@ The repository is scaffolded to enforce a strict Model-View-Controller separatio
 
 ```text
 OOAD-Healthcare-Management/
-├── data/                           # Auto-generated H2 persistent database files
 ├── src/
 │   ├── main/
 │   │   ├── java/com/pesu/ooad/healthcare/
@@ -35,10 +34,12 @@ OOAD-Healthcare-Management/
 │   │       ├── application.properties      # Database and server configurations
 │   │       ├── schema.sql                  # Shared SQL table definitions
 │   │       └── templates/                  # Thymeleaf HTML view files
-├── pom.xml                         # Maven dependencies
-└── README.md
-```
-
+├── .gitignore                          # Ignored files (e.g., target/, .idea/)
+├── HELP.md                             # Spring Boot documentation
+├── mvnw                                # Maven wrapper script (macOS/Linux)
+├── mvnw.cmd                            # Maven wrapper script (Windows)
+├── pom.xml                             # Maven project dependencies
+└── README.md                           # Project documentation
 ---
 
 ## 🧩 Module Division & Design Patterns
