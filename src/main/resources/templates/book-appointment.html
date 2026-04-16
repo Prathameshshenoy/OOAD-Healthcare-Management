@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Book Appointment | MedCare Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar-brand { font-weight: 700; letter-spacing: 1px; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            backdrop-filter: blur(10px);
+        }
+        .form-floating > label { color: #6c757d; }
+        .btn-primary {
+            background-color: #4a90e2;
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover { background-color: #357abd; transform: translateY(-2px); }
+        .icon-box {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: #eef2f7;
+            color: #4a90e2;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-5 shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="bi bi-hospital me-2"></i>MedCare Pro</a>
+            <div class="ms-auto">
+                <a href="/appointments/schedule" class="btn btn-outline-light btn-sm rounded-pill px-4"><i class="bi bi-calendar3 me-2"></i>View Schedule</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8">
+                <div class="card glass-card p-4">
+                    <div class="text-center mb-4">
+                        <div class="icon-box">
+                            <i class="bi bi-calendar-plus"></i>
+                        </div>
+                        <h3 class="fw-bold text-dark">Schedule Appointment</h3>
+                        <p class="text-muted small">Select your preferred time slot below</p>
+                    </div>
+                    
+                    <div class="card-body p-0">
+                        <div th:if="${successMessage}" class="alert alert-success border-0 rounded-3 shadow-sm" role="alert">
+                            <i class="bi bi-check-circle-fill me-2"></i><span th:text="${successMessage}"></span>
+                        </div>
+                        <div th:if="${errorMessage}" class="alert alert-danger border-0 rounded-3 shadow-sm" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${errorMessage}"></span>
+                        </div>
+
+                        <form action="/appointments/book" method="post">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="number" class="form-control" id="patientId" name="patientId" required placeholder="Patient ID">
+                                        <label for="patientId"><i class="bi bi-person me-2"></i>Patient ID</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="number" class="form-control" id="doctorId" name="doctorId" required placeholder="Doctor ID">
+                                        <label for="doctorId"><i class="bi bi-heart-pulse me-2"></i>Doctor ID</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-floating mb-3">
+                                <input type="date" class="form-control" id="date" name="date" required>
+                                <label for="date"><i class="bi bi-calendar-event me-2"></i>Date</label>
+                            </div>
+
+                            <div class="form-floating mb-4">
+                                <input type="time" class="form-control" id="time" name="time" required>
+                                <label for="time"><i class="bi bi-clock me-2"></i>Time</label>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-calendar-check me-2"></i>Confirm Booking</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -43,28 +43,33 @@ OOAD-Healthcare-Management/
 ---
 
 ## 🧩 Module Division & Design Patterns
+
 The project requires the implementation of 4 major features and 4 minor features, alongside equal participation in applying design principles. The workload is divided into four independent modules. Each team member owns the full stack (UI, Controller, and Database logic) for their assigned module:
 
-**1. Authentication & Access Control**
-* **Major Feature:** Registration and Login routing (Session management).
-* **Minor Feature:** Manage Staff Accounts (Admin functionality).
-* **Assigned Pattern:** **Factory Pattern** (`UserFactory` for instantiating different user roles).
+**1. Authentication & Access Control**  
+* **Major Feature:** Registration and Login routing (Session management).  
+* **Minor Feature:** Manage Staff Accounts (Admin functionality).  
+* **Assigned Pattern:** **Factory Pattern** (`UserFactory` for instantiating different user roles).  
 
-**2. Patient Management & EHR**
-* **Major Feature:** Manage Patient Profiles (CRUD operations).
-* **Minor Feature:** Manage Consultations & EHR (Updating medical history).
-* **Assigned Pattern:** **Singleton Pattern** (`DatabaseConnection` management for heavy data operations).
+**2. Patient Management & EHR**  
+* **Major Feature:** Manage Patient Profiles (CRUD operations).  
+* **Minor Feature:** Manage Consultations & EHR (Updating medical history).  
+* **Assigned Pattern:** **Singleton Pattern** (`DatabaseConnection` management for heavy data operations).  
 
-**3. Core Appointment Engine**
-* **Major Feature:** Book Appointment & Check Availability (Core scheduling logic).
-* **Minor Feature:** Update Schedule (Doctor availability/leave).
-* **Assigned Pattern:** **Facade Pattern** (`NotificationFacade` for triggering SMS/Email alerts).
+**3. Core Appointment Engine** ✅ *(Completed by Prathamesh)*  
+* **Major Feature:** Book Appointment & Check Availability (Core scheduling logic).  
+* **Minor Feature:** Update Schedule (Doctor availability/leave).  
+* **Assigned Pattern:** **Facade Pattern** (`NotificationFacade` for triggering SMS/Email alerts).  
 
-**4. Financials & Analytics**
-* **Major Feature:** Process Billing & Invoices.
-* **Minor Feature:** Generate Analytics Reports (Admin dashboard statistics).
-* **Assigned Pattern:** **Strategy Pattern** (`PaymentStrategy` for abstracting cash vs. card processing).
+⚠️ **Integration Note for Auth/Staff Module:**  
+The `book-appointment.html` UI currently uses manual text inputs for Patient ID and Doctor ID to allow isolated testing. Once the User/Doctor tables and login sessions are built, update this form to:  
+- Pull the Patient ID invisibly from the active session context  
+- Convert the Doctor ID input into a dropdown select menu  
 
+**4. Financials & Analytics**  
+* **Major Feature:** Process Billing & Invoices.  
+* **Minor Feature:** Generate Analytics Reports (Admin dashboard statistics).  
+* **Assigned Pattern:** **Strategy Pattern** (`PaymentStrategy` for abstracting cash vs. card processing).  
 ---
 
 ## 🚀 Local Setup Instructions
