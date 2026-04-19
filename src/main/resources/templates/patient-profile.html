@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Patient Profile — Healthcare Management</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; padding: 40px 16px; display: flex; flex-direction: column; align-items: center; }
+        h1 { color: #1a3a5c; margin-bottom: 4px; font-size: 1.8rem; }
+        .subtitle { color: #5a7a9a; margin-bottom: 28px; font-size: 0.9rem; }
+        .card { background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); padding: 32px; width: 100%; max-width: 640px; margin-bottom: 24px; }
+        .card h2 { font-size: 1.1rem; color: #1e40af; margin-bottom: 18px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin-bottom: 4px; }
+        .info-item label { font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 2px; }
+        .info-item span { font-size: 0.95rem; color: #1e293b; }
+        .alert-success { background: #dcfce7; color: #166534; border: 1px solid #86efac; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 0.9rem; }
+        .alert-danger  { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 0.9rem; }
+        .form-group { margin-bottom: 16px; }
+        label.form-label { display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 6px; }
+        input.form-input { width: 100%; padding: 9px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; outline: none; transition: border 0.2s; }
+        input.form-input:focus { border-color: #3b82f6; }
+        .btn { display: inline-block; padding: 10px 22px; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: background 0.2s; }
+        .btn-primary { background: #2563eb; color: #fff; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-secondary { background: #e2e8f0; color: #334155; }
+        .btn-secondary:hover { background: #cbd5e1; }
+        .action-row { display: flex; gap: 12px; margin-top: 8px; }
+        nav { margin-bottom: 24px; align-self: flex-start; }
+        nav a { color: #2563eb; text-decoration: none; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="/patients/search">← Back to Search</a>
+</nav>
+
+<h1>👤 Patient Profile</h1>
+<p class="subtitle">View and update patient demographics.</p>
+
+<div class="card">
+
+    <!-- Activity Diagram: showAlert("Profile Updated") -->
+    <div th:if="${successMessage}" class="alert-success" th:text="${successMessage}"></div>
+    <div th:if="${alertMessage}"   class="alert-danger"  th:text="${alertMessage}"></div>
+
+    <h2>Patient Information</h2>
+    <div class="info-grid">
+        <div class="info-item">
+            <label>Patient ID</label>
+            <span th:text="${patient.patientId}"></span>
+        </div>
+        <div class="info-item">
+            <label>Full Name</label>
+            <span th:text="${patient.name}"></span>
+        </div>
+        <div class="info-item">
+            <label>Date of Birth</label>
+            <span th:text="${patient.dateOfBirth}"></span>
+        </div>
+        <div class="info-item">
+            <label>Contact Info</label>
+            <span th:text="${patient.contactInfo}"></span>
+        </div>
+        <div class="info-item">
+            <label>Insurance Info</label>
+            <span th:text="${patient.insuranceInfo}"></span>
+        </div>
+    </div>
+
+    <div class="action-row" style="margin-top: 20px;">
+        <a class="btn btn-secondary" th:href="@{/patients/{id}/history(id=${patient.patientId})}">📋 View EHR / Medical History</a>
+    </div>
+</div>
+
+<!-- Activity Diagram: "Update demographics (contact/insurance)" -->
+<div class="card">
+    <h2>Update Demographics</h2>
+    <form method="post" th:action="@{/patients/{id}/update(id=${patient.patientId})}">
+        <div class="form-group">
+            <label class="form-label" for="contactInfo">Contact Info</label>
+            <input class="form-input" type="text" id="contactInfo" name="contactInfo"
+                   th:value="${patient.contactInfo}" placeholder="Phone / Email / Address"/>
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="insuranceInfo">Insurance Info</label>
+            <input class="form-input" type="text" id="insuranceInfo" name="insuranceInfo"
+                   th:value="${patient.insuranceInfo}" placeholder="Provider / Policy No."/>
+        </div>
+        <!-- Activity Diagram: Save to DB → showAlert("Profile Updated") -->
+        <button class="btn btn-primary" type="submit">💾 Save Changes</button>
+    </form>
+</div>
+
+</body>
+</html>

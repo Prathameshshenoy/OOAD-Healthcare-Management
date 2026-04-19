@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Medical History (EHR) — Healthcare Management</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; padding: 40px 16px; display: flex; flex-direction: column; align-items: center; }
+        h1 { color: #1a3a5c; margin-bottom: 4px; font-size: 1.8rem; }
+        .subtitle { color: #5a7a9a; margin-bottom: 28px; font-size: 0.9rem; }
+        .card { background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); padding: 32px; width: 100%; max-width: 760px; margin-bottom: 24px; }
+        .card h2 { font-size: 1.1rem; color: #1e40af; margin-bottom: 18px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; }
+        .alert-success { background: #dcfce7; color: #166534; border: 1px solid #86efac; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 0.9rem; }
+        /* Consultation records */
+        .record-item { border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 14px; }
+        .record-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .record-date { font-size: 0.8rem; color: #64748b; font-weight: 600; }
+        .record-apt  { font-size: 0.78rem; color: #94a3b8; }
+        .record-notes { font-size: 0.9rem; color: #334155; margin-bottom: 6px; }
+        .record-allergies { font-size: 0.82rem; color: #b45309; background: #fef3c7; padding: 4px 10px; border-radius: 6px; display: inline-block; }
+        .no-records { color: #94a3b8; font-size: 0.9rem; text-align: center; padding: 24px 0; }
+        /* Add record form */
+        .form-group { margin-bottom: 16px; }
+        label.form-label { display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 6px; }
+        input.form-input, textarea.form-input { width: 100%; padding: 9px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; outline: none; transition: border 0.2s; font-family: inherit; }
+        input.form-input:focus, textarea.form-input:focus { border-color: #3b82f6; }
+        textarea.form-input { resize: vertical; min-height: 80px; }
+        .btn { display: inline-block; padding: 10px 22px; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: background 0.2s; }
+        .btn-primary { background: #2563eb; color: #fff; }
+        .btn-primary:hover { background: #1d4ed8; }
+        nav { margin-bottom: 24px; align-self: flex-start; }
+        nav a { color: #2563eb; text-decoration: none; font-size: 0.9rem; margin-right: 16px; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a th:href="@{/patients/{id}/profile(id=${patient.patientId})}">← Patient Profile</a>
+    <a href="/patients/search">🔍 Search</a>
+</nav>
+
+<h1>📋 Medical History &amp; EHR</h1>
+<p class="subtitle" th:text="'Patient: ' + ${patient.name} + ' (ID: ' + ${patient.patientId} + ')'"></p>
+
+<!-- Activity Diagram: "Display consultations" -->
+<div class="card">
+    <h2>Past Consultations &amp; EHR Records</h2>
+
+    <!-- Activity Diagram: showAlert on add success -->
+    <div th:if="${successMessage}" class="alert-success" th:text="${successMessage}"></div>
+
+    <!-- Activity Diagram: "Fetch past appointments + EHR" → show records -->
+    <div th:if="${#lists.isEmpty(medicalRecords)}" class="no-records">
+        No medical records found for this patient.
+    </div>
+
+    <div th:each="record : ${medicalRecords}" class="record-item">
+        <div class="record-header">
+            <span class="record-date" th:text="'Date: ' + ${record.recordDate}"></span>
+            <span class="record-apt"  th:if="${record.linkedAppointmentId}"
+                  th:text="'Appointment #' + ${record.linkedAppointmentId}"></span>
+        </div>
+        <div class="record-notes">
+            <strong>Notes:</strong> <span th:text="${record.consultationNotes}"></span>
+        </div>
+        <span class="record-allergies" th:if="${record.allergies}"
+              th:text="'⚠ Allergies: ' + ${record.allergies}"></span>
+    </div>
+</div>
+
+<!-- Activity Diagram: "Add new medical record (notes/allergies)" → "Update EHR in DB" -->
+<div class="card">
+    <h2>Add New Medical Record</h2>
+    <form method="post" th:action="@{/patients/{id}/record(id=${patient.patientId})}">
+        <div class="form-group">
+            <label class="form-label" for="linkedAppointmentId">Linked Appointment ID (optional)</label>
+            <input class="form-input" type="number" id="linkedAppointmentId" name="linkedAppointmentId"
+                   placeholder="e.g. 42 — leave blank if not linked"/>
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="consultationNotes">Consultation Notes</label>
+            <textarea class="form-input" id="consultationNotes" name="consultationNotes"
+                      placeholder="Enter diagnosis, treatment, observations…" required></textarea>
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="allergies">Allergies</label>
+            <input class="form-input" type="text" id="allergies" name="allergies"
+                   placeholder="e.g. Penicillin, Peanuts — leave blank if none"/>
+        </div>
+        <!-- Activity Diagram: Save → "Update EHR in DB" -->
+        <button class="btn btn-primary" type="submit">➕ Add Record</button>
+    </form>
+</div>
+
+</body>
+</html>

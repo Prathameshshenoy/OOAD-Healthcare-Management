@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Patient Search — Healthcare Management</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 16px; }
+        h1 { color: #1a3a5c; margin-bottom: 8px; font-size: 1.8rem; }
+        .subtitle { color: #5a7a9a; margin-bottom: 32px; font-size: 0.95rem; }
+        .card { background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); padding: 32px; width: 100%; max-width: 560px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 6px; }
+        input { width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; outline: none; transition: border 0.2s; }
+        input:focus { border-color: #3b82f6; }
+        .divider { text-align: center; color: #94a3b8; margin: 18px 0; font-size: 0.85rem; }
+        button { width: 100%; padding: 11px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+        button:hover { background: #1d4ed8; }
+        .alert-danger { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 0.9rem; }
+        .results-table { width: 100%; border-collapse: collapse; margin-top: 28px; }
+        .results-table th { background: #eff6ff; color: #1e40af; font-size: 0.82rem; text-transform: uppercase; padding: 10px 12px; text-align: left; border-bottom: 2px solid #bfdbfe; }
+        .results-table td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; color: #334155; }
+        .results-table tr:hover td { background: #f8fafc; }
+        a.btn-link { color: #2563eb; font-weight: 600; text-decoration: none; font-size: 0.85rem; }
+        a.btn-link:hover { text-decoration: underline; }
+        nav { margin-bottom: 24px; align-self: flex-start; }
+        nav a { color: #2563eb; text-decoration: none; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<nav><a href="/">← Home</a></nav>
+
+<h1>🔍 Patient Search</h1>
+<p class="subtitle">Search patient by ID or Name to view their profile and EHR.</p>
+
+<div class="card">
+
+    <!-- Activity Diagram: showAlert("Patient Not Found") -->
+    <div th:if="${alertMessage}" class="alert-danger" th:text="${alertMessage}"></div>
+
+    <!-- Search by Patient ID -->
+    <form method="post" th:action="@{/patients/search}">
+        <div class="form-group">
+            <label for="patientId">Patient ID</label>
+            <input type="number" id="patientId" name="patientId" placeholder="e.g. 1001" min="1"/>
+        </div>
+        <button type="submit">Search by ID</button>
+    </form>
+
+    <div class="divider">— OR —</div>
+
+    <!-- Search by Name -->
+    <form method="post" th:action="@{/patients/search}">
+        <div class="form-group">
+            <label for="name">Patient Name</label>
+            <input type="text" id="name" name="name" placeholder="e.g. John Doe"/>
+        </div>
+        <button type="submit">Search by Name</button>
+    </form>
+
+    <!-- Search results (name search returns multiple) -->
+    <div th:if="${patients}">
+        <table class="results-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Date of Birth</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="p : ${patients}">
+                    <td th:text="${p.patientId}"></td>
+                    <td th:text="${p.name}"></td>
+                    <td th:text="${p.dateOfBirth}"></td>
+                    <td>
+                        <a class="btn-link" th:href="@{/patients/{id}/profile(id=${p.patientId})}">View Profile</a>
+                        &nbsp;|&nbsp;
+                        <a class="btn-link" th:href="@{/patients/{id}/history(id=${p.patientId})}">EHR</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+</body>
+</html>
