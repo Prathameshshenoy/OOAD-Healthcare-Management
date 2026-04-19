@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Staff — Healthcare System</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; }
+        nav { background: #1a3c5e; color: white; padding: 1rem 2rem;
+              display: flex; align-items: center; justify-content: space-between; }
+        nav h1 { font-size: 1.2rem; }
+        .back-btn { background: rgba(255,255,255,0.15); color: white; text-decoration: none;
+                    padding: 0.35rem 0.9rem; border-radius: 5px; font-size: 0.85rem; }
+        .container { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; }
+        h2 { color: #1a3c5e; margin-bottom: 1.5rem; }
+        table { width: 100%; border-collapse: collapse; background: white;
+                border-radius: 10px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+        th { background: #1a3c5e; color: white; padding: 0.9rem 1rem;
+             text-align: left; font-size: 0.88rem; }
+        td { padding: 0.85rem 1rem; border-bottom: 1px solid #eef0f3; font-size: 0.9rem; }
+        tr:last-child td { border-bottom: none; }
+        .badge { display: inline-block; padding: 0.2rem 0.7rem;
+                 border-radius: 20px; font-size: 0.78rem; font-weight: 700; }
+        .badge-active   { background: #eafaf1; color: #1e8449; }
+        .badge-inactive { background: #fdecea; color: #c0392b; }
+        .btn-deactivate { background: #e74c3c; color: white; border: none;
+                          padding: 0.3rem 0.8rem; border-radius: 5px; cursor: pointer; }
+        .btn-activate   { background: #27ae60; color: white; border: none;
+                          padding: 0.3rem 0.8rem; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+<nav>
+    <h1>🔧 Manage Staff Accounts</h1>
+    <a class="back-btn" href="/dashboard">← Back to Dashboard</a>
+</nav>
+
+<div class="container">
+    <h2>All User Accounts</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="user : ${users}">
+                <td th:text="${user.id}"></td>
+                <td th:text="${user.name}"></td>
+                <td th:text="${user.email}"></td>
+                <td th:text="${user.role}"></td>
+                <td>
+                    <span class="badge"
+                          th:classappend="${user.status == 'Active'} ? 'badge-active' : 'badge-inactive'"
+                          th:text="${user.status}"></span>
+                </td>
+                <td>
+                    <form method="post" action="/admin/staff/deactivate"
+                          th:if="${user.status == 'Active'}" style="display:inline;">
+                        <input type="hidden" name="userId" th:value="${user.id}" />
+                        <button type="submit" class="btn-deactivate">Deactivate</button>
+                    </form>
+                    <form method="post" action="/admin/staff/reactivate"
+                          th:if="${user.status == 'Inactive'}" style="display:inline;">
+                        <input type="hidden" name="userId" th:value="${user.id}" />
+                        <button type="submit" class="btn-activate">Reactivate</button>
+                    </form>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
