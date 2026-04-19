@@ -46,7 +46,7 @@ OOAD-Healthcare-Management/
 
 The project requires the implementation of 4 major features and 4 minor features, alongside equal participation in applying design principles. The workload is divided into four independent modules. Each team member owns the full stack (UI, Controller, and Database logic) for their assigned module:
 
-**1. Authentication & Access Control**  
+**1. Authentication & Access Control** ✅ *(Completed by Aryan)*
 * **Major Feature:** Registration and Login routing (Session management).  
 * **Minor Feature:** Manage Staff Accounts (Admin functionality).  
 * **Assigned Pattern:** **Factory Pattern** (`UserFactory` for instantiating different user roles).  
@@ -76,7 +76,7 @@ The `book-appointment.html` UI currently uses manual text inputs for Patient ID 
 
 **1. Clone the repository:**
 ```bash
-git clone <YOUR-GITHUB-REPO-URL-HERE>
+git clone https://github.com/Prathameshshenoy/OOAD-Healthcare-Management.git
 cd OOAD-Healthcare-Management
 ```
 
