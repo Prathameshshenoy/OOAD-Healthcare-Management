@@ -25,27 +25,24 @@ public class AuthService {
         this.notificationFacade = notificationFacade;
     }
 
+    // =========================
     // REGISTRATION
+    // =========================
     public User registerUser(String type, String name, String email, String password) {
-
-        // Factory Pattern
-        User newUser = userFactory.createUser(type, name, email, password);
-
-        // Singleton Pattern
-        DatabaseConnection db = DatabaseConnection.getInstance();
-        db.connect();
 
         // Check duplicate email
         Optional<User> existing = userRepository.findByEmail(email);
         if (existing.isPresent()) {
-            db.disconnect();
             throw new IllegalStateException("This email is already registered. Please log in.");
         }
 
-        User saved = userRepository.save(newUser);
-        db.disconnect();
+        // Factory Pattern
+        User newUser = userFactory.createUser(type, name, email, password);
 
-        // Facade Pattern - send welcome notification
+        // Save user
+        User saved = userRepository.save(newUser);
+
+        // Facade Pattern (correct method signature)
         notificationFacade.notifyUser(
             saved.getId(),
             "Welcome to the Healthcare System, " + saved.getName() + "!"
@@ -54,14 +51,12 @@ public class AuthService {
         return saved;
     }
 
+    // =========================
     // LOGIN
+    // =========================
     public User login(String email, String password) {
 
-        DatabaseConnection db = DatabaseConnection.getInstance();
-        db.connect();
-
         Optional<User> optionalUser = userRepository.findByEmail(email);
-        db.disconnect();
 
         if (optionalUser.isEmpty()) {
             throw new IllegalArgumentException("No account found with this email address.");
@@ -73,7 +68,6 @@ public class AuthService {
             throw new IllegalArgumentException("Your account has been deactivated. Contact an administrator.");
         }
 
-        // UML method: User.login()
         if (!user.login(password)) {
             throw new IllegalStateException("Incorrect password. Please try again.");
         }
@@ -81,47 +75,54 @@ public class AuthService {
         return user;
     }
 
-    // ADMIN - Get all users
+    // =========================
+    // ADMIN - GET ALL USERS
+    // =========================
     public List<User> getAllUsers() {
-        DatabaseConnection db = DatabaseConnection.getInstance();
-        db.connect();
-        List<User> users = userRepository.findAll();
-        db.disconnect();
-        return users;
+        return userRepository.findAll();
     }
 
-    // ADMIN - Deactivate (State Machine: Active → Inactive)
+    // =========================
+    // ADMIN - DEACTIVATE USER
+    // =========================
     public User deactivateUser(Long userId) {
-        DatabaseConnection db = DatabaseConnection.getInstance();
-        db.connect();
 
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         user.deactivate();
         User saved = userRepository.save(user);
-        db.disconnect();
 
-        notificationFacade.notifyUser(saved.getId(), "Your account has been deactivated.");
+        notificationFacade.notifyUser(
+            saved.getId(),
+            "Your account has been deactivated."
+        );
+
         return saved;
     }
 
-    // ADMIN - Reactivate (State Machine: Inactive → Active)
+    // =========================
+    // ADMIN - REACTIVATE USER
+    // =========================
     public User reactivateUser(Long userId) {
-        DatabaseConnection db = DatabaseConnection.getInstance();
-        db.connect();
 
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         user.reactivate();
         User saved = userRepository.save(user);
-        db.disconnect();
 
-        notificationFacade.notifyUser(saved.getId(), "Your account has been reactivated.");
+        notificationFacade.notifyUser(
+            saved.getId(),
+            "Your account has been reactivated."
+        );
+
         return saved;
     }
 
+    // =========================
+    // GET USER BY ID
+    // =========================
     public User getUserById(Long userId) {
         return userRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("User not found"));
