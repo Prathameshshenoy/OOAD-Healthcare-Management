@@ -4,6 +4,7 @@ import com.pesu.ooad.healthcare.model.MedicalRecord;
 import com.pesu.ooad.healthcare.model.Patient;
 import com.pesu.ooad.healthcare.repository.MedicalRecordRepository;
 import com.pesu.ooad.healthcare.repository.PatientRepository;
+import com.pesu.ooad.healthcare.service.DatabaseConnection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -44,7 +45,11 @@ public class PatientService {
     // ------------------------------------------------------------------ //
 
     public Optional<Patient> searchPatient(Long patientId) {
-        return patientRepository.findByPatientId(patientId);
+        DatabaseConnection db = DatabaseConnection.getInstance();
+        db.connect();
+        Optional<Patient> result = patientRepository.findByPatientId(patientId);
+        db.disconnect();
+        return result;
     }
 
     // ------------------------------------------------------------------ //
@@ -53,7 +58,11 @@ public class PatientService {
     // ------------------------------------------------------------------ //
 
     public List<Patient> searchPatientByName(String name) {
-        return patientRepository.findByNameContainingIgnoreCase(name);
+        DatabaseConnection db = DatabaseConnection.getInstance();
+        db.connect();
+        List<Patient> result = patientRepository.findByNameContainingIgnoreCase(name);
+        db.disconnect();
+        return result;
     }
 
     // ------------------------------------------------------------------ //
@@ -61,8 +70,12 @@ public class PatientService {
     // ------------------------------------------------------------------ //
 
     public Patient getPatientProfile(Long patientId) {
-        return patientRepository.findByPatientId(patientId)
+        DatabaseConnection db = DatabaseConnection.getInstance();
+        db.connect();
+        Patient patient = patientRepository.findByPatientId(patientId)
                 .orElseThrow(() -> new IllegalArgumentException("Patient Not Found"));
+        db.disconnect();
+        return patient;
     }
 
     // ------------------------------------------------------------------ //
@@ -73,6 +86,9 @@ public class PatientService {
     // ------------------------------------------------------------------ //
 
     public Patient updatePatientProfile(Long patientId, String contactInfo, String insuranceInfo) {
+        DatabaseConnection db = DatabaseConnection.getInstance();
+        db.connect();
+
         // Fetch patient object
         Patient patient = patientRepository.findByPatientId(patientId)
                 .orElseThrow(() -> new IllegalArgumentException("Patient Not Found"));
@@ -81,7 +97,9 @@ public class PatientService {
         patient.updateDemographics(contactInfo, insuranceInfo);
 
         // Save to DB
-        return patientRepository.save(patient);
+        Patient saved = patientRepository.save(patient);
+        db.disconnect();
+        return saved;
     }
 
     // ------------------------------------------------------------------ //
@@ -90,7 +108,43 @@ public class PatientService {
     // ------------------------------------------------------------------ //
 
     public List<MedicalRecord> getMedicalHistory(Long patientId) {
-        return medicalRecordRepository.findByPatient_PatientId(patientId);
+        DatabaseConnection db = DatabaseConnection.getInstance();
+        db.connect();
+        List<MedicalRecord> records = medicalRecordRepository.findByPatient_PatientId(patientId);
+        db.disconnect();
+        return records;
+    }
+
+    // ------------------------------------------------------------------ //
+    //  Receptionist access control:
+    //  Return patients scoped to a specific doctor (those who have at least
+    //  one appointment with that doctor).
+    // ------------------------------------------------------------------ //
+
+    public Optional<Patient> searchPatientForDoctor(Long patientId, Long doctorId) {
+        DatabaseConnection db = DatabaseConnection.getInstance();
+        db.connect();
+        // Fetch the patient first, then verify they have an appointment with this doctor
+        Optional<Patient> result = patientRepository.findByPatientId(patientId);
+        if (result.isPresent()) {
+            // Confirm this patient belongs to the doctor's scope
+            boolean inScope = patientRepository
+                    .findPatientsByDoctorId(doctorId)
+                    .stream()
+                    .anyMatch(p -> p.getPatientId().equals(patientId));
+            if (!inScope) result = Optional.empty();
+        }
+        db.disconnect();
+        return result;
+    }
+
+    public List<Patient> searchPatientByNameForDoctor(String name, Long doctorId) {
+        DatabaseConnection db = DatabaseConnection.getInstance();
+        db.connect();
+        List<Patient> result = patientRepository
+                .findByNameContainingIgnoreCaseAndDoctorId(name, doctorId);
+        db.disconnect();
+        return result;
     }
 
     // ------------------------------------------------------------------ //
@@ -100,6 +154,9 @@ public class PatientService {
 
     public MedicalRecord addMedicalRecord(Long patientId, Long linkedAppointmentId,
                                           String consultationNotes, String allergies) {
+        DatabaseConnection db = DatabaseConnection.getInstance();
+        db.connect();
+
         // Fetch patient
         Patient patient = patientRepository.findByPatientId(patientId)
                 .orElseThrow(() -> new IllegalArgumentException("Patient Not Found"));
@@ -109,6 +166,8 @@ public class PatientService {
                 patient, linkedAppointmentId, consultationNotes, allergies, LocalDate.now());
 
         // Update EHR in DB
-        return medicalRecordRepository.save(record);
+        MedicalRecord saved = medicalRecordRepository.save(record);
+        db.disconnect();
+        return saved;
     }
 }

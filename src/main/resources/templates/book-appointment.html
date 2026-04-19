@@ -154,6 +154,11 @@
             const doctorSelect = document.getElementById("doctorId");
             const dateInput = document.getElementById("date");
             const timeSelect = document.getElementById("time");
+
+            // Set minimum date to tomorrow — no booking on today or past dates
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            dateInput.min = tomorrow.toISOString().split("T")[0];
             
             const timeOptions = Array.from(timeSelect.options).filter(opt => opt.value !== "");
 

@@ -10,62 +10,40 @@
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem 0; /* Prevents card from touching edges on small screens */
+            display: flex; align-items: center; justify-content: center;
+            padding: 2rem 0;
         }
         .glass-card {
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            border: none;
+            border-radius: 20px; border: none;
             box-shadow: 0 10px 30px rgba(0,0,0,0.08);
             backdrop-filter: blur(10px);
-            width: 100%;
-            max-width: 480px;
+            width: 100%; max-width: 480px;
             padding: 3rem 2.5rem;
         }
         .form-floating > label { color: #6c757d; }
-        
-        /* Sleek black/dark theme matching Login */
         .btn-dark-theme {
-            background-color: #212529;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            padding: 12px;
-            font-weight: 600;
-            transition: all 0.3s;
+            background-color: #212529; color: white; border: none;
+            border-radius: 10px; padding: 12px; font-weight: 600; transition: all 0.3s;
         }
-        .btn-dark-theme:hover { 
-            background-color: #343a40; 
-            color: white;
-            transform: translateY(-2px); 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        .btn-dark-theme:hover {
+            background-color: #343a40; color: white;
+            transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
-        
         .icon-box {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 65px;
-            height: 65px;
-            border-radius: 16px;
-            background: #e9ecef;
-            color: #212529;
-            margin-bottom: 20px;
-            font-size: 32px;
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 65px; height: 65px; border-radius: 16px;
+            background: #e9ecef; color: #212529; margin-bottom: 20px; font-size: 32px;
         }
         .brand-text { color: #212529; font-weight: 800; letter-spacing: 1px; }
+        #receptionist-hint { font-size: 0.8rem; margin-top: 6px; display: none; }
     </style>
 </head>
 <body>
 
     <div class="glass-card">
         <div class="text-center mb-4">
-            <div class="icon-box">
-                <i class="bi bi-person-vcard"></i>
-            </div>
+            <div class="icon-box"><i class="bi bi-person-vcard"></i></div>
             <h2 class="brand-text mb-1">Create Account</h2>
             <p class="text-muted">Join the MedCare Pro system</p>
         </div>
@@ -75,9 +53,9 @@
         </div>
 
         <form method="post" action="/register">
-            
+
             <div class="form-floating mb-3">
-                <input type="text" class="form-control" id="name" name="name" placeholder="Dr. John Smith" required>
+                <input type="text" class="form-control" id="name" name="name" placeholder="John Smith" required>
                 <label for="name"><i class="bi bi-person me-2"></i>Full Name</label>
             </div>
 
@@ -91,15 +69,32 @@
                 <label for="password"><i class="bi bi-shield-lock me-2"></i>Password</label>
             </div>
 
-            <div class="form-floating mb-4">
-                <select class="form-select" id="role" name="role" required>
-                    <option value="" selected disabled>-- Select your role --</option>
-                    <option value="PATIENT">Patient</option>
-                    <option value="DOCTOR">Doctor</option>
-                    <option value="RECEPTIONIST">Receptionist</option>
-                    <option value="ADMIN">Administrator</option>
-                </select>
-                <label for="role"><i class="bi bi-briefcase me-2"></i>System Role</label>
+            <div class="mb-4">
+                <div class="form-floating">
+                    <select class="form-select" id="role" name="role" required onchange="onRoleChange(this)">
+                        <option value="" selected disabled>-- Select your role --</option>
+                        <option value="PATIENT">Patient</option>
+                        <option value="DOCTOR">Doctor</option>
+                        <option value="RECEPTIONIST"
+                                th:if="${receptionistSlotAvailable}">Receptionist</option>
+                        <option value="RECEPTIONIST" disabled
+                                th:unless="${receptionistSlotAvailable}">Receptionist (no slots available)</option>
+                        <option value="ADMIN">Administrator</option>
+                    </select>
+                    <label for="role"><i class="bi bi-briefcase me-2"></i>System Role</label>
+                </div>
+
+                <!-- Only shown via JS when RECEPTIONIST is selected -->
+                <div id="receptionist-hint">
+                    <span th:if="${receptionistSlotAvailable}" class="text-success">
+                        <i class="bi bi-check-circle-fill me-1"></i>
+                        You will be automatically assigned to an available doctor on registration.
+                    </span>
+                    <span th:unless="${receptionistSlotAvailable}" class="text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        No doctor slots available. Please check back later.
+                    </span>
+                </div>
             </div>
 
             <button type="submit" class="btn btn-dark-theme w-100 mb-3">
@@ -108,10 +103,17 @@
         </form>
 
         <div class="text-center mt-4">
-            <span class="text-muted small">Already have an account?</span> 
+            <span class="text-muted small">Already have an account?</span>
             <a href="/login" class="text-decoration-none fw-bold" style="color: #212529;">Sign in here</a>
         </div>
     </div>
+
+    <script>
+        function onRoleChange(sel) {
+            var hint = document.getElementById('receptionist-hint');
+            hint.style.display = (sel.value === 'RECEPTIONIST') ? 'block' : 'none';
+        }
+    </script>
 
 </body>
 </html>

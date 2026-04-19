@@ -27,6 +27,10 @@ public abstract class User {
     @Column(nullable = false)
     private String role;
 
+    // Only populated for RECEPTIONIST — links to their assigned doctor's User.id
+    @Column(name = "assigned_doctor_id")
+    private Long assignedDoctorId;
+
     protected User() {}
 
     protected User(String name, String email, String password, String role) {
@@ -67,4 +71,7 @@ public abstract class User {
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+
+    public Long getAssignedDoctorId() { return assignedDoctorId; }
+    public void setAssignedDoctorId(Long id) { this.assignedDoctorId = id; }
 }
