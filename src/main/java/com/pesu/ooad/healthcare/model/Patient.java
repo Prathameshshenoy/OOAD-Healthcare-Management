@@ -6,9 +6,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Patient model — maps 1:1 with the UML Class Diagram (Page 4).
+ * Patient — medical data entity. Maps 1:1 with the UML Class Diagram (Page 4).
  *
- * Fields derived from diagram:
+ * KEY DESIGN DECISION:
+ *   patientId is NOT auto-generated. It is set explicitly by AuthService to
+ *   match the User.id of the corresponding PatientUser login account.
+ *   This links the two tables so appointments (which store User.id as patientId)
+ *   can be correctly joined to Patient records.
+ *
+ * Fields from UML:
  *   patientId, name, dateOfBirth, contactInfo, insuranceInfo
  *
  * Relationships:
@@ -18,8 +24,8 @@ import java.util.List;
 @Table(name = "patients")
 public class Patient {
 
+    // Manually assigned to match User.id — no auto-generation
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long patientId;
 
     @Column(nullable = false)
@@ -27,32 +33,27 @@ public class Patient {
 
     private LocalDate dateOfBirth;
 
-    // "contactInfo" from UML (phone / email / address)
+    // contactInfo from UML (phone / email / address)
     private String contactInfo;
 
-    // "insuranceInfo" from UML
+    // insuranceInfo from UML
     private String insuranceInfo;
 
-    // One-to-many relationship with MedicalRecord (EHR)
-    @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<MedicalRecord> medicalRecords = new ArrayList<>();
-
-    // ------------------------------------------------------------------ //
-    //  Constructors
-    // ------------------------------------------------------------------ //
 
     public Patient() {}
 
-    public Patient(String name, LocalDate dateOfBirth, String contactInfo, String insuranceInfo) {
-        this.name = name;
-        this.dateOfBirth = dateOfBirth;
-        this.contactInfo = contactInfo;
+    public Patient(Long patientId, String name, LocalDate dateOfBirth,
+                   String contactInfo, String insuranceInfo) {
+        this.patientId     = patientId;
+        this.name          = name;
+        this.dateOfBirth   = dateOfBirth;
+        this.contactInfo   = contactInfo;
         this.insuranceInfo = insuranceInfo;
     }
 
-    // ------------------------------------------------------------------ //
-    //  Getters & Setters
-    // ------------------------------------------------------------------ //
+    // Getters & Setters
 
     public Long getPatientId() { return patientId; }
     public void setPatientId(Long patientId) { this.patientId = patientId; }
@@ -70,15 +71,11 @@ public class Patient {
     public void setInsuranceInfo(String insuranceInfo) { this.insuranceInfo = insuranceInfo; }
 
     public List<MedicalRecord> getMedicalRecords() { return medicalRecords; }
-    public void setMedicalRecords(List<MedicalRecord> medicalRecords) { this.medicalRecords = medicalRecords; }
+    public void setMedicalRecords(List<MedicalRecord> records) { this.medicalRecords = records; }
 
-    // ------------------------------------------------------------------ //
-    //  Domain methods (from UML)
-    // ------------------------------------------------------------------ //
-
-    /** Update demographics — contact info and insurance (Activity Diagram: updateDemographics) */
+    // Domain method from UML: updateDemographics
     public void updateDemographics(String contactInfo, String insuranceInfo) {
-        this.contactInfo = contactInfo;
+        this.contactInfo   = contactInfo;
         this.insuranceInfo = insuranceInfo;
     }
 }

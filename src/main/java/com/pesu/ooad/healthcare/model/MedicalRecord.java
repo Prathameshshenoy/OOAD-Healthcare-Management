@@ -20,7 +20,7 @@ public class MedicalRecord {
     private Long recordId;
 
     // Owner side of Patient <-> MedicalRecord
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "patient_id", nullable = false)
     private Patient patient;
 

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.pesu.ooad.healthcare.model.User;
+import com.pesu.ooad.healthcare.repository.UserRepository;
 import com.pesu.ooad.healthcare.service.AuthService;
 
 import jakarta.servlet.http.HttpSession;
@@ -18,13 +19,14 @@ import jakarta.servlet.http.HttpSession;
 public class MainController {
 
     private final AuthService authService;
+    private final UserRepository userRepository;
 
     @Autowired
-    public MainController(AuthService authService) {
+    public MainController(AuthService authService, UserRepository userRepository) {
         this.authService = authService;
+        this.userRepository = userRepository;
     }
 
-    // Redirect root to login
     @GetMapping("/")
     public String root() {
         return "redirect:/login";
@@ -32,7 +34,8 @@ public class MainController {
 
     // ── REGISTRATION ──────────────────────────────────────────────────
     @GetMapping("/register")
-    public String showRegisterForm() {
+    public String showRegisterForm(Model model) {
+        model.addAttribute("receptionistSlotAvailable", authService.hasUnassignedDoctor());
         return "register";
     }
 
@@ -49,9 +52,11 @@ public class MainController {
             return "login";
         } catch (IllegalStateException e) {
             model.addAttribute("errorMessage", e.getMessage());
+            model.addAttribute("receptionistSlotAvailable", authService.hasUnassignedDoctor());
             return "register";
         } catch (IllegalArgumentException e) {
             model.addAttribute("errorMessage", e.getMessage());
+            model.addAttribute("receptionistSlotAvailable", authService.hasUnassignedDoctor());
             return "register";
         }
     }
@@ -65,7 +70,6 @@ public class MainController {
         return "login";
     }
 
-    // UML method: handleLogin(user: String, pass: String)
     @PostMapping("/login")
     public String handleLogin(
             @RequestParam String email,
@@ -74,24 +78,14 @@ public class MainController {
             Model model) {
         try {
             User user = authService.login(email, password);
-
-            // Store in session — other modules read these
             session.setAttribute("userId",   user.getId());
             session.setAttribute("userRole", user.getRole());
             session.setAttribute("userName", user.getName());
-
-            // UML method: routeRequest(action: String)
-            return routeRequest(user.getRole());
-
+            return "redirect:/dashboard";
         } catch (IllegalArgumentException | IllegalStateException e) {
             model.addAttribute("errorMessage", e.getMessage());
             return "login";
         }
-    }
-
-    // UML method: routeRequest(action: String)
-    private String routeRequest(String role) {
-        return "redirect:/dashboard";
     }
 
     // ── DASHBOARD ─────────────────────────────────────────────────────
@@ -107,7 +101,6 @@ public class MainController {
     }
 
     // ── LOGOUT ────────────────────────────────────────────────────────
-    // State Machine: LoggedIn → Active
     @PostMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();
@@ -123,7 +116,9 @@ public class MainController {
             return "dashboard";
         }
         List<User> users = authService.getAllUsers();
+        List<User> doctors = userRepository.findByRole("DOCTOR");
         model.addAttribute("users", users);
+        model.addAttribute("doctors", doctors);
         model.addAttribute("userName", session.getAttribute("userName"));
         return "admin-staff";
     }

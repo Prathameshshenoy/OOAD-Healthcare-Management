@@ -5,7 +5,6 @@
     <title>Billing Management | MedCare Pro</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <!-- SweetAlert2 for beautiful popups -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body {
@@ -14,7 +13,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         .navbar-brand { font-weight: 700; letter-spacing: 1px; }
-        
+
         .glass-panel {
             background: rgba(255, 255, 255, 0.90);
             border-radius: 16px;
@@ -30,28 +29,23 @@
             border-spacing: 0 8px;
             margin-top: -8px;
         }
-        
         .table-custom tbody tr {
             background-color: #ffffff;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             transition: all 0.2s ease;
         }
-        
         .table-custom tbody tr:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
-
         .table-custom td, .table-custom th {
             border: none;
             padding: 16px;
             vertical-align: middle;
         }
-
         .table-custom td:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
-        .table-custom td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+        .table-custom td:last-child  { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
 
-        /* Dynamic Role Badges */
         .role-badge {
             padding: 0.4em 0.85em;
             font-size: 0.75rem;
@@ -60,20 +54,20 @@
             letter-spacing: 0.5px;
             text-transform: uppercase;
         }
-        .role-ADMIN { background-color: #fdecea; color: #c0392b; border: 1px solid #f5b7b1; }
+        .role-ADMIN        { background-color: #fdecea; color: #c0392b; border: 1px solid #f5b7b1; }
         .role-RECEPTIONIST { background-color: #eafaf1; color: #1e8449; border: 1px solid #a9dfbf; }
-        
+
         .status-badge {
             padding: 0.5em 1em;
             font-weight: 600;
             border-radius: 12px;
             font-size: 0.85rem;
         }
-        .status-UNBILLED { background-color: #e2e3e5; color: #383d41; }
-        .status-INVOICE_GENERATED { background-color: #cce5ff; color: #004085; }
-        .status-PENDING_PAYMENT { background-color: #fff3cd; color: #856404; }
-        .status-PROCESSING { background-color: #d1ecf1; color: #0c5460; }
-        .status-PAID { background-color: #d4edda; color: #155724; }
+        .status-UNBILLED           { background-color: #e2e3e5; color: #383d41; }
+        .status-INVOICE_GENERATED  { background-color: #cce5ff; color: #004085; }
+        .status-PENDING_PAYMENT    { background-color: #fff3cd; color: #856404; }
+        .status-PROCESSING         { background-color: #d1ecf1; color: #0c5460; }
+        .status-PAID               { background-color: #d4edda; color: #155724; }
     </style>
 </head>
 <body>
@@ -81,13 +75,14 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow-sm">
         <div class="container">
             <a class="navbar-brand" href="/dashboard"><i class="bi bi-hospital me-2"></i>MedCare Pro</a>
-            
             <div class="d-flex align-items-center">
                 <span class="text-light me-3 d-none d-md-inline">
-                    <i class="bi bi-person-circle me-1"></i> <span th:text="${userName}">User</span>
+                    <i class="bi bi-person-circle me-1"></i>
+                    <span th:text="${userName}">User</span>
                 </span>
-                <span class="role-badge me-3" th:classappend="'role-' + ${userRole}" th:text="${userRole}">ROLE</span>
-                
+                <span class="role-badge me-3"
+                      th:classappend="'role-' + ${userRole}"
+                      th:text="${userRole}">ROLE</span>
                 <form style="display:inline;" method="post" action="/logout" class="m-0">
                     <button type="submit" class="btn btn-outline-light btn-sm rounded-pill px-3 fw-bold">
                         <i class="bi bi-box-arrow-right me-1"></i>Logout
@@ -99,27 +94,41 @@
 
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fw-bold text-dark m-0"><i class="bi bi-cash-stack text-success me-2"></i>Billing & Invoices</h2>
+            <h2 class="fw-bold text-dark m-0">
+                <i class="bi bi-cash-stack text-success me-2"></i>Billing &amp; Invoices
+            </h2>
             <a href="/dashboard" class="btn btn-outline-secondary rounded-pill">
                 <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
             </a>
         </div>
 
-        <!-- Section 1: Unbilled Appointments -->
+        <!-- ── Section 1: Confirmed Appointments — Mark Complete & Bill ── -->
+        <!--
+            These are appointments with status "Confirmed" that have no bill yet.
+            The receptionist enters the consultation fee and clicks the button.
+            This calls POST /appointments/complete (sets status → "Completed")
+            which internally calls billingService.onConsultationCompleted()
+            to create a PENDING_PAYMENT bill. The page then reloads and the
+            new bill appears in Section 2 below.
+        -->
         <div class="glass-panel">
-            <h4 class="fw-bold mb-3"><i class="bi bi-plus-circle me-2 text-primary"></i>Unbilled Appointments</h4>
-            <p class="text-muted small mb-4">These appointments have been confirmed and are ready for invoice generation.</p>
-            
+            <h4 class="fw-bold mb-1">
+                <i class="bi bi-clipboard2-pulse me-2 text-primary"></i>Confirmed Appointments
+            </h4>
+            <p class="text-muted small mb-4">
+                Enter the consultation fee and mark an appointment complete to auto-generate its bill.
+            </p>
+
             <div th:if="${unbilledAppointments.empty}" class="alert alert-light text-center border">
                 <i class="bi bi-check-circle text-success fs-4 d-block mb-2"></i>
-                All clear! No pending appointments to bill.
+                No confirmed appointments waiting to be billed.
             </div>
 
             <table th:unless="${unbilledAppointments.empty}" class="table table-hover table-custom">
                 <thead class="text-muted small text-uppercase">
                     <tr>
                         <th>Appt ID</th>
-                        <th>Date & Time</th>
+                        <th>Date &amp; Time</th>
                         <th>Patient ID</th>
                         <th>Doctor ID</th>
                         <th>Consultation Fee (₹)</th>
@@ -130,7 +139,7 @@
                     <tr th:each="appt : ${unbilledAppointments}">
                         <td class="fw-bold">#[[${appt.id}]]</td>
                         <td>
-                            <span th:text="${appt.appointmentDate}">Date</span> <br>
+                            <span th:text="${appt.appointmentDate}">Date</span><br>
                             <span class="text-muted small" th:text="${appt.appointmentTime}">Time</span>
                         </td>
                         <td><i class="bi bi-person me-1"></i>[[${appt.patientId}]]</td>
@@ -138,12 +147,23 @@
                         <td style="width: 200px;">
                             <div class="input-group">
                                 <span class="input-group-text bg-light">₹</span>
-                                <input type="number" class="form-control" th:id="'fee-' + ${appt.id}" value="1500" min="1" step="0.01">
+                                <input type="number"
+                                       class="form-control"
+                                       th:id="'fee-' + ${appt.id}"
+                                       value="1500"
+                                       min="1"
+                                       step="0.01">
                             </div>
                         </td>
                         <td class="text-end">
-                            <button class="btn btn-primary rounded-pill px-4" th:onclick="generateInvoice([[${appt.id}]])">
-                                <i class="bi bi-receipt me-1"></i> Generate
+                            <!--
+                                Calls completeAndBill(appointmentId) below.
+                                That function hits POST /appointments/complete,
+                                which marks status "Completed" AND triggers billing.
+                            -->
+                            <button class="btn btn-success rounded-pill px-4"
+                                    th:onclick="completeAndBill([[${appt.id}]])">
+                                <i class="bi bi-check2-circle me-1"></i> Mark Complete &amp; Bill
                             </button>
                         </td>
                     </tr>
@@ -151,10 +171,12 @@
             </table>
         </div>
 
-        <!-- Section 2: Active Bills -->
+        <!-- ── Section 2: Active Bills ── -->
         <div class="glass-panel">
-            <h4 class="fw-bold mb-3"><i class="bi bi-receipt-cutoff me-2 text-purple"></i>Active Bills</h4>
-            
+            <h4 class="fw-bold mb-3">
+                <i class="bi bi-receipt-cutoff me-2"></i>Active Bills
+            </h4>
+
             <div th:if="${bills.empty}" class="alert alert-light text-center border">
                 <i class="bi bi-inbox fs-4 d-block mb-2 text-muted"></i>
                 No bills found in the system.
@@ -174,108 +196,138 @@
                     <tr th:each="bill : ${bills}">
                         <td class="fw-bold">#[[${bill.id}]]</td>
                         <td><a href="#" class="text-decoration-none">Appt #[[${bill.appointmentId}]]</a></td>
-                        <td class="fw-bold text-success">₹[[${#numbers.formatDecimal(bill.amount, 1, 2)}]]</td>
+                        <td class="fw-bold text-success">
+                            ₹[[${#numbers.formatDecimal(bill.amount, 1, 2)}]]
+                        </td>
                         <td>
-                            <span class="status-badge" th:classappend="'status-' + ${bill.status}" th:text="${bill.status}">STATUS</span>
+                            <span class="status-badge"
+                                  th:classappend="'status-' + ${bill.status}"
+                                  th:text="${bill.status}">STATUS</span>
                         </td>
                         <td class="text-end">
-                            <!-- Show payment options if pending or processing -->
+                            <!-- Pending or processing: show payment buttons -->
                             <div th:if="${bill.status.name() == 'PENDING_PAYMENT' or bill.status.name() == 'PROCESSING'}">
-                                <button class="btn btn-sm btn-outline-success me-1 rounded-pill" th:onclick="processPayment([[${bill.id}]], 'CASH')">
+                                <button class="btn btn-sm btn-outline-success me-1 rounded-pill"
+                                        th:onclick="processPayment([[${bill.id}]], 'CASH')">
                                     <i class="bi bi-cash"></i> Cash
                                 </button>
-                                <button class="btn btn-sm btn-outline-primary rounded-pill" th:onclick="processPayment([[${bill.id}]], 'CARD')">
+                                <button class="btn btn-sm btn-outline-primary rounded-pill"
+                                        th:onclick="processPayment([[${bill.id}]], 'CARD')">
                                     <i class="bi bi-credit-card"></i> Card
                                 </button>
                             </div>
+                            <!-- Already paid -->
                             <div th:if="${bill.status.name() == 'PAID'}">
                                 <span class="badge bg-success"><i class="bi bi-check-all"></i> Settled</span>
                             </div>
+                            <!-- Invoice generated / awaiting action -->
                             <div th:if="${bill.status.name() == 'INVOICE_GENERATED' or bill.status.name() == 'UNBILLED'}">
-                                <span class="text-muted small"><i class="bi bi-hourglass-split"></i> Awaiting User</span>
+                                <span class="text-muted small">
+                                    <i class="bi bi-hourglass-split"></i> Awaiting User
+                                </span>
                             </div>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
-
     </div>
 
-    <!-- Scripts for API Interaction -->
     <script>
-        // 1. Generate Invoice Function
-        function generateInvoice(appointmentId) {
-            const amountInput = document.getElementById('fee-' + appointmentId);
-            const amount = parseFloat(amountInput.value);
+        /**
+         * Step 1 of the billing chain:
+         * Calls POST /appointments/complete with { appointmentId, consultationFee }.
+         * AppointmentService marks the appointment "Completed", then calls
+         * billingService.onConsultationCompleted() which creates the Bill
+         * in PENDING_PAYMENT state. The page reloads so Section 2 shows the new bill.
+         */
+        function completeAndBill(appointmentId) {
+            const feeInput = document.getElementById('fee-' + appointmentId);
+            const fee      = parseFloat(feeInput.value);
 
-            if (!amount || amount <= 0) {
-                Swal.fire('Invalid Amount', 'Please enter a valid positive amount.', 'warning');
+            if (!fee || fee <= 0) {
+                Swal.fire('Invalid Amount', 'Please enter a valid consultation fee.', 'warning');
                 return;
             }
 
             Swal.fire({
-                title: 'Generating Invoice...',
-                text: 'Please wait while we process the bill.',
-                allowOutsideClick: false,
-                didOpen: () => { Swal.showLoading(); }
-            });
+                title: 'Mark Consultation Complete?',
+                html:  `Appointment <strong>#${appointmentId}</strong> will be marked <em>Completed</em> and a bill of <strong>₹${fee.toFixed(2)}</strong> will be created automatically.`,
+                icon:  'question',
+                showCancelButton:   true,
+                confirmButtonText:  'Yes, Complete & Bill',
+                confirmButtonColor: '#198754'
+            }).then(result => {
+                if (!result.isConfirmed) return;
 
-            fetch(`/billing/generate/${appointmentId}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ amount: amount })
-            })
-            .then(async response => {
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.error || 'Failed to generate invoice');
-                return data;
-            })
-            .then(data => {
-                Swal.fire('Success!', `Invoice for ₹${data.amount} generated successfully.`, 'success')
-                .then(() => location.reload());
-            })
-            .catch(error => {
-                Swal.fire('Error', error.message, 'error');
+                Swal.fire({
+                    title: 'Processing...',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
+                fetch('/appointments/complete', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({ appointmentId: appointmentId, consultationFee: fee })
+                })
+                .then(async response => {
+                    const data = await response.json();
+                    if (data.error) throw new Error(data.error);
+                    return data;
+                })
+                .then(data => {
+                    Swal.fire(
+                        'Done!',
+                        `${data.message}`,
+                        'success'
+                    ).then(() => location.reload());
+                })
+                .catch(error => {
+                    Swal.fire('Error', error.message, 'error');
+                });
             });
         }
 
-        // 2. Process Payment Function
+        /**
+         * Step 2 of the billing chain (receptionist collects payment):
+         * Calls POST /billing/pay/{billId} with the chosen payment method.
+         * BillingService transitions PENDING_PAYMENT → PROCESSING → PAID.
+         */
         function processPayment(billId, method) {
             Swal.fire({
-                title: `Confirm ${method} Payment?`,
-                text: `Are you sure you want to process this bill via ${method}?`,
-                icon: 'question',
-                showCancelButton: true,
+                title:             `Confirm ${method} Payment?`,
+                text:              `Process bill #${billId} via ${method}?`,
+                icon:              'question',
+                showCancelButton:  true,
                 confirmButtonText: 'Yes, Pay Now',
                 confirmButtonColor: method === 'CASH' ? '#2ecc71' : '#4a90e2'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    
-                    Swal.fire({
-                        title: 'Processing Payment...',
-                        allowOutsideClick: false,
-                        didOpen: () => { Swal.showLoading(); }
-                    });
+            }).then(result => {
+                if (!result.isConfirmed) return;
 
-                    fetch(`/billing/pay/${billId}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ paymentMethod: method })
-                    })
-                    .then(async response => {
-                        const data = await response.json();
-                        if (!response.ok) throw new Error(data.error || 'Payment failed');
-                        return data;
-                    })
-                    .then(data => {
-                        Swal.fire('Paid!', `Bill #${data.id} has been settled.`, 'success')
+                Swal.fire({
+                    title: 'Processing Payment...',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
+                fetch(`/billing/pay/${billId}`, {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({ paymentMethod: method })
+                })
+                .then(async response => {
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error || 'Payment failed');
+                    return data;
+                })
+                .then(data => {
+                    Swal.fire('Paid!', `Bill #${data.id} has been settled.`, 'success')
                         .then(() => location.reload());
-                    })
-                    .catch(error => {
-                        Swal.fire('Payment Failed', error.message, 'error');
-                    });
-                }
+                })
+                .catch(error => {
+                    Swal.fire('Payment Failed', error.message, 'error');
+                });
             });
         }
     </script>

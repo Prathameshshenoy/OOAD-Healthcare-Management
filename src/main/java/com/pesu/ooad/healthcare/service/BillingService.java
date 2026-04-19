@@ -3,9 +3,8 @@ package com.pesu.ooad.healthcare.service;
 import com.pesu.ooad.healthcare.model.Bill;
 import com.pesu.ooad.healthcare.model.BillingStatus;
 import com.pesu.ooad.healthcare.repository.BillRepository;
-import com.pesu.ooad.healthcare.strategy.CashPayment;
-import com.pesu.ooad.healthcare.strategy.CreditCardPayment;
 import com.pesu.ooad.healthcare.strategy.PaymentStrategy;
+import java.util.Map;
 import com.pesu.ooad.healthcare.repository.AppointmentRepository;
 import com.pesu.ooad.healthcare.model.Appointment;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,8 +35,9 @@ public class BillingService {
     private final BillRepository billRepository;
     private final AppointmentRepository appointmentRepository;
     private final NotificationFacade notificationFacade;
-    private final CreditCardPayment creditCardPayment;
-    private final CashPayment cashPayment;
+    // DIP: depend on the abstraction, not concrete implementations.
+    // Spring injects all PaymentStrategy beans keyed by their bean name.
+    private final Map<String, PaymentStrategy> paymentStrategies;
 
     /**
      * Constructor injection (preferred over field injection for testability).
@@ -47,13 +47,13 @@ public class BillingService {
     public BillingService(BillRepository billRepository,
                           AppointmentRepository appointmentRepository,
                           NotificationFacade notificationFacade,
-                          CreditCardPayment creditCardPayment,
-                          CashPayment cashPayment) {
+                          Map<String, PaymentStrategy> paymentStrategies) {
         this.billRepository = billRepository;
         this.appointmentRepository = appointmentRepository;
         this.notificationFacade = notificationFacade;
-        this.creditCardPayment = creditCardPayment;
-        this.cashPayment = cashPayment;
+        // Spring automatically collects all PaymentStrategy beans into this map
+        // keyed by bean name ("cashPayment", "creditCardPayment") — pure abstraction
+        this.paymentStrategies = paymentStrategies;
     }
 
     private Long getPatientIdForAppointment(Long appointmentId) {
@@ -232,11 +232,17 @@ public class BillingService {
      * @throws IllegalArgumentException for unrecognised method names
      */
     private PaymentStrategy resolveStrategy(String paymentMethod) {
-        return switch (paymentMethod.toUpperCase()) {
-            case "CARD" -> creditCardPayment;
-            case "CASH" -> cashPayment;
+        // Map user input to the Spring bean name — the only place coupling exists
+        String beanName = switch (paymentMethod.toUpperCase()) {
+            case "CARD" -> "creditCardPayment";
+            case "CASH" -> "cashPayment";
             default -> throw new IllegalArgumentException(
                 "Unknown payment method: '" + paymentMethod + "'. Accepted values: CARD, CASH");
         };
+        PaymentStrategy strategy = paymentStrategies.get(beanName);
+        if (strategy == null) {
+            throw new IllegalArgumentException("No PaymentStrategy bean found for: " + beanName);
+        }
+        return strategy;
     }
 }

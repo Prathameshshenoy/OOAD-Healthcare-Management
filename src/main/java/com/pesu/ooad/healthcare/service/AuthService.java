@@ -41,19 +41,42 @@ public class AuthService {
             throw new IllegalStateException("This email is already registered. Please log in.");
         }
 
-        // Factory Pattern
+        // Receptionist: auto-assign to the first doctor who has no receptionist yet.
+        // Block registration entirely if no such doctor exists.
+        Long autoAssignedDoctorId = null;
+        if ("RECEPTIONIST".equalsIgnoreCase(type)) {
+            User unassignedDoctor = findUnassignedDoctor()
+                .orElseThrow(() -> new IllegalStateException(
+                    "No doctors are currently available for assignment. " +
+                    "A receptionist can only register when at least one doctor has no receptionist assigned."));
+            autoAssignedDoctorId = unassignedDoctor.getId();
+        }
+
+        // Factory Pattern — create the right User subclass
         User newUser = userFactory.createUser(type, name, email, password);
 
-        // Save user
+        // Persist first so we get an ID
         User saved = userRepository.save(newUser);
 
-        // Also create a patient record if role is PATIENT
+        // Apply auto-assignment for receptionists
+        if (autoAssignedDoctorId != null) {
+            saved.setAssignedDoctorId(autoAssignedDoctorId);
+            saved = userRepository.save(saved);
+        }
+
+        // If registering as a patient, create a linked Patient medical record.
         if ("PATIENT".equalsIgnoreCase(type)) {
-            Patient patientRecord = new Patient(name, null, email, null);
+            Patient patientRecord = new Patient(
+                saved.getId(),
+                name,
+                null,
+                null,
+                null
+            );
             patientRepository.save(patientRecord);
         }
 
-        // Facade Pattern (correct method signature)
+        // Facade Pattern — welcome notification
         notificationFacade.notifyUser(
             saved.getId(),
             "Welcome to the Healthcare System, " + saved.getName() + "!"
@@ -97,18 +120,11 @@ public class AuthService {
     // ADMIN - DEACTIVATE USER
     // =========================
     public User deactivateUser(Long userId) {
-
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
         user.deactivate();
         User saved = userRepository.save(user);
-
-        notificationFacade.notifyUser(
-            saved.getId(),
-            "Your account has been deactivated."
-        );
-
+        notificationFacade.notifyUser(saved.getId(), "Your account has been deactivated.");
         return saved;
     }
 
@@ -116,18 +132,11 @@ public class AuthService {
     // ADMIN - REACTIVATE USER
     // =========================
     public User reactivateUser(Long userId) {
-
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
         user.reactivate();
         User saved = userRepository.save(user);
-
-        notificationFacade.notifyUser(
-            saved.getId(),
-            "Your account has been reactivated."
-        );
-
+        notificationFacade.notifyUser(saved.getId(), "Your account has been reactivated.");
         return saved;
     }
 
@@ -137,5 +146,22 @@ public class AuthService {
     public User getUserById(Long userId) {
         return userRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    }
+
+    // =========================
+    // RECEPTIONIST SLOT CHECK
+    // Used by register page to show/hide the Receptionist option.
+    // =========================
+    public boolean hasUnassignedDoctor() {
+        return findUnassignedDoctor().isPresent();
+    }
+
+    // Returns the first active doctor who has no receptionist assigned yet.
+    private Optional<User> findUnassignedDoctor() {
+        List<User> doctors = userRepository.findByRole("DOCTOR");
+        return doctors.stream()
+            .filter(d -> "Active".equals(d.getStatus()))
+            .filter(d -> userRepository.findByRoleAndAssignedDoctorId("RECEPTIONIST", d.getId()).isEmpty())
+            .findFirst();
     }
 }

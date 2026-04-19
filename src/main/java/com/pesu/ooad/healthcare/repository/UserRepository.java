@@ -14,4 +14,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
 
     List<User> findByRole(String role);
+
+    /** Find the receptionist assigned to a specific doctor */
+    java.util.Optional<User> findByRoleAndAssignedDoctorId(String role, Long assignedDoctorId);
 }

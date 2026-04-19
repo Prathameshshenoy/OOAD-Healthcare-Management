@@ -15,29 +15,17 @@
         .navbar-brand { font-weight: 700; letter-spacing: 1px; }
         .glass-card {
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            border: none;
+            border-radius: 20px; border: none;
             box-shadow: 0 10px 30px rgba(0,0,0,0.08);
             backdrop-filter: blur(10px);
-            padding: 2.5rem;
-            height: 100%;
+            padding: 2.5rem; height: 100%;
         }
-
-        /* Green Accent Icon Box for Patient Module */
         .icon-box {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 60px;
-            height: 60px;
-            border-radius: 16px;
-            background: #eafaf1;
-            color: #2ecc71;
-            margin-bottom: 15px;
-            font-size: 28px;
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 60px; height: 60px; border-radius: 16px;
+            background: #eafaf1; color: #2ecc71;
+            margin-bottom: 15px; font-size: 28px;
         }
-
-        /* Clinical Timeline Record Card */
         .record-card {
             background-color: #ffffff;
             border: 1px solid #e9ecef;
@@ -48,31 +36,20 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             transform: translateX(2px);
         }
-
-        /* Form Styling */
         .form-floating > label { color: #6c757d; }
-        .form-control:focus {
+        .form-control:focus, .form-select:focus {
             border-color: #2ecc71;
             box-shadow: 0 0 0 0.25rem rgba(46, 204, 113, 0.15);
         }
         textarea.form-control { min-height: 120px; }
-
-        /* Module Specific Green Button */
         .btn-theme-green {
-            background-color: #2ecc71;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            padding: 14px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.2);
+            background-color: #2ecc71; color: white; border: none;
+            border-radius: 10px; padding: 14px; font-weight: 600;
+            transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(46,204,113,0.2);
         }
-        .btn-theme-green:hover { 
-            background-color: #27ae60; 
-            color: white;
-            transform: translateY(-2px); 
-            box-shadow: 0 6px 15px rgba(46, 204, 113, 0.35);
+        .btn-theme-green:hover {
+            background-color: #27ae60; color: white;
+            transform: translateY(-2px); box-shadow: 0 6px 15px rgba(46,204,113,0.35);
         }
     </style>
 </head>
@@ -82,44 +59,102 @@
         <div class="container">
             <a class="navbar-brand" href="/dashboard"><i class="bi bi-hospital me-2"></i>MedCare Pro</a>
             <div class="ms-auto d-flex gap-2">
-                <a th:href="@{/patients/{id}/profile(id=${patient.patientId})}" class="btn btn-outline-light btn-sm rounded-pill px-3">
-                    <i class="bi bi-person-badge me-1"></i>Patient Profile
+                <a th:href="@{/patients/{id}/profile(id=${patient.patientId})}"
+                   class="btn btn-outline-light btn-sm rounded-pill px-3">
+                    <i class="bi bi-person-badge me-1"></i>Profile
                 </a>
-                <a href="/patients/search" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                <!-- Staff get back-to-search; patients get dashboard -->
+                <a th:if="${userRole != 'PATIENT'}" href="/patients/search"
+                   class="btn btn-outline-light btn-sm rounded-pill px-3">
                     <i class="bi bi-search me-1"></i>Search
+                </a>
+                <a th:if="${userRole == 'PATIENT'}" href="/dashboard"
+                   class="btn btn-outline-light btn-sm rounded-pill px-3">
+                    <i class="bi bi-house-door me-1"></i>Dashboard
                 </a>
             </div>
         </div>
     </nav>
 
     <div class="container">
-        
+
         <div class="row mb-4">
             <div class="col-12 text-center">
-                <div class="icon-box">
-                    <i class="bi bi-clipboard2-pulse"></i>
-                </div>
+                <div class="icon-box"><i class="bi bi-clipboard2-pulse"></i></div>
                 <h2 class="fw-bold text-dark mb-1">Electronic Health Records</h2>
-                <p class="text-muted fw-medium" th:text="'Patient: ' + ${patient.name} + ' (ID: #' + ${patient.patientId} + ')'"></p>
+                <p class="text-muted fw-medium"
+                   th:text="'Patient: ' + ${patient.name} + ' (ID: #' + ${patient.patientId} + ')'"></p>
             </div>
         </div>
 
-        <div class="row justify-content-center mb-4" th:if="${successMessage}">
+        <!-- Alerts -->
+        <div class="row justify-content-center mb-3" th:if="${successMessage != null or alertMessage != null}">
             <div class="col-12 col-lg-10">
-                <div class="alert alert-success border-0 rounded-3 shadow-sm mb-0" role="alert">
+                <div th:if="${successMessage}" class="alert alert-success border-0 rounded-3 shadow-sm" role="alert">
                     <i class="bi bi-check-circle-fill me-2"></i><span th:text="${successMessage}"></span>
+                </div>
+                <div th:if="${alertMessage}" class="alert alert-danger border-0 rounded-3 shadow-sm" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${alertMessage}"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- APPOINTMENTS SECTION -->
+        <div class="row g-4 justify-content-center mb-4">
+            <div class="col-lg-10 col-md-12">
+                <div class="card glass-card">
+                    <h5 class="fw-bold text-dark mb-4 border-bottom pb-3">
+                        <i class="bi bi-calendar-check text-muted me-2"></i>My Appointments
+                    </h5>
+
+                    <div th:if="${#lists.isEmpty(allAppointments)}" class="text-center py-4">
+                        <i class="bi bi-calendar-x display-4 text-secondary opacity-50 mb-3 d-block"></i>
+                        <p class="text-muted fw-medium mb-0">No appointments booked yet.</p>
+                    </div>
+
+                    <div class="table-responsive" th:if="${!#lists.isEmpty(allAppointments)}">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Doctor</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="appt : ${allAppointments}">
+                                    <td th:text="${appt.id}"></td>
+                                    <td th:text="${appt.appointmentDate}"></td>
+                                    <td th:text="${appt.appointmentTime}"></td>
+                                    <td th:text="'Dr. ' + (${doctorNames[appt.doctorId]} ?: '#' + ${appt.doctorId})"></td>
+                                    <td>
+                                        <span th:class="${'badge ' +
+                                            (appt.status == 'Confirmed'  ? 'bg-success' :
+                                             appt.status == 'Pending'    ? 'bg-warning text-dark' :
+                                             appt.status == 'Cancelled'  ? 'bg-danger' :
+                                             appt.status == 'Completed'  ? 'bg-primary' : 'bg-secondary')}"
+                                              th:text="${appt.status}">
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="row g-4 justify-content-center">
-            
+
+            <!-- LEFT: Past Consultations -->
             <div class="col-lg-6 col-md-12">
                 <div class="card glass-card">
                     <h5 class="fw-bold text-dark mb-4 border-bottom pb-3">
                         <i class="bi bi-clock-history text-muted me-2"></i>Past Consultations
                     </h5>
-                    
+
                     <div th:if="${#lists.isEmpty(medicalRecords)}" class="text-center py-5">
                         <i class="bi bi-folder2-open display-4 text-secondary opacity-50 mb-3 d-block"></i>
                         <p class="text-muted fw-medium mb-0">No medical records found for this patient.</p>
@@ -127,51 +162,78 @@
 
                     <div class="d-flex flex-column gap-3">
                         <div th:each="record : ${medicalRecords}" class="record-card rounded-3 p-3 shadow-sm">
-                            
+
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <span class="badge bg-light text-secondary border px-2 py-1">
-                                    <i class="bi bi-calendar-event me-1"></i><span th:text="${record.recordDate}"></span>
+                                    <i class="bi bi-calendar-event me-1"></i>
+                                    <span th:text="${record.recordDate}"></span>
                                 </span>
-                                <span class="badge bg-secondary bg-opacity-10 text-secondary" th:if="${record.linkedAppointmentId}" th:text="'Appt #' + ${record.linkedAppointmentId}"></span>
+                                <!-- Linked appointment badge — only shown when present -->
+                                <span th:if="${record.linkedAppointmentId != null}"
+                                      class="badge bg-secondary bg-opacity-10 text-secondary"
+                                      th:text="'Appt #' + ${record.linkedAppointmentId}"></span>
                             </div>
-                            
+
                             <div class="mb-2">
                                 <span class="fw-semibold text-dark">Notes: </span>
                                 <span class="text-muted" th:text="${record.consultationNotes}"></span>
                             </div>
-                            
-                            <div th:if="${record.allergies} and ${record.allergies != ''}">
+
+                            <div th:if="${record.allergies != null and record.allergies != ''}">
                                 <span class="badge bg-warning bg-opacity-10 text-warning-emphasis border border-warning border-opacity-25 px-2 py-1">
-                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>Allergies: <span th:text="${record.allergies}"></span>
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>Allergies:
+                                    <span th:text="${record.allergies}"></span>
                                 </span>
                             </div>
-                            
+
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- RIGHT: Add New Record — doctors only -->
             <div class="col-lg-4 col-md-12">
-                <div class="card glass-card">
+
+                <!-- DOCTOR / ADMIN: show the add record form -->
+                <div th:if="${userRole == 'DOCTOR' or userRole == 'ADMIN'}" class="card glass-card">
                     <h5 class="fw-bold text-dark mb-4 border-bottom pb-3">
                         <i class="bi bi-file-earmark-plus text-muted me-2"></i>Add New Record
                     </h5>
-                    
+
                     <form method="post" th:action="@{/patients/{id}/record(id=${patient.patientId})}">
-                        
+
+                        <!--
+                            Appointment dropdown — populated from the patient's actual completed
+                            appointments. No more typing a raw ID blindly.
+                            The field is optional: a record can exist without a linked appointment.
+                        -->
                         <div class="form-floating mb-3">
-                            <input type="number" class="form-control" id="linkedAppointmentId" name="linkedAppointmentId" placeholder="Appt ID">
-                            <label for="linkedAppointmentId"><i class="bi bi-link-45deg me-1"></i>Linked Appt ID (Optional)</label>
+                            <select class="form-select" id="linkedAppointmentId" name="linkedAppointmentId">
+                                <option value="">— None —</option>
+                                <option th:each="appt : ${completedAppointments}"
+                                        th:value="${appt.id}"
+                                        th:text="'Appt #' + ${appt.id} + ' — ' + ${appt.appointmentDate}">
+                                </option>
+                            </select>
+                            <label for="linkedAppointmentId">
+                                <i class="bi bi-link-45deg me-1"></i>Link to Appointment (Optional)
+                            </label>
                         </div>
-                        
+
                         <div class="form-floating mb-3">
-                            <textarea class="form-control" id="consultationNotes" name="consultationNotes" placeholder="Enter notes..." required></textarea>
-                            <label for="consultationNotes"><i class="bi bi-card-text me-1"></i>Consultation Notes</label>
+                            <textarea class="form-control" id="consultationNotes" name="consultationNotes"
+                                      placeholder="Enter notes..." required></textarea>
+                            <label for="consultationNotes">
+                                <i class="bi bi-card-text me-1"></i>Consultation Notes
+                            </label>
                         </div>
 
                         <div class="form-floating mb-4">
-                            <input type="text" class="form-control" id="allergies" name="allergies" placeholder="e.g. Penicillin">
-                            <label for="allergies"><i class="bi bi-virus me-1"></i>Allergies (Optional)</label>
+                            <input type="text" class="form-control" id="allergies" name="allergies"
+                                   placeholder="e.g. Penicillin">
+                            <label for="allergies">
+                                <i class="bi bi-virus me-1"></i>Allergies (Optional)
+                            </label>
                         </div>
 
                         <div class="d-grid mt-2">
@@ -181,6 +243,15 @@
                         </div>
                     </form>
                 </div>
+
+                <!-- PATIENT / RECEPTIONIST: read-only notice instead of the form -->
+                <div th:if="${userRole == 'PATIENT' or userRole == 'RECEPTIONIST'}" class="card glass-card">
+                    <div class="text-center py-4">
+                        <i class="bi bi-lock display-4 text-secondary opacity-50 mb-3 d-block"></i>
+                        <p class="text-muted fw-medium mb-0">Medical records can only be added by a doctor.</p>
+                    </div>
+                </div>
+
             </div>
 
         </div>

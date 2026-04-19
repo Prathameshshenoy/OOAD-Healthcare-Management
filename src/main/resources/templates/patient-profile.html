@@ -23,67 +23,35 @@
             margin-bottom: 2rem;
             height: 100%;
         }
-
-        /* Green Accent Icon Box for Patient Module */
         .icon-box {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 60px;
-            height: 60px;
-            border-radius: 16px;
-            background: #eafaf1;
-            color: #2ecc71;
-            margin-bottom: 15px;
-            font-size: 28px;
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 60px; height: 60px; border-radius: 16px;
+            background: #eafaf1; color: #2ecc71;
+            margin-bottom: 15px; font-size: 28px;
         }
-
-        /* Data Display Boxes */
         .info-box {
-            background-color: #f8f9fa;
-            border-radius: 12px;
-            padding: 12px 16px;
-            border: 1px solid #e9ecef;
-            height: 100%;
+            background-color: #f8f9fa; border-radius: 12px;
+            padding: 12px 16px; border: 1px solid #e9ecef; height: 100%;
         }
         .info-label {
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: #6c757d;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
+            font-size: 0.75rem; font-weight: 700; color: #6c757d;
+            text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
         }
-        .info-value {
-            font-size: 1.05rem;
-            font-weight: 600;
-            color: #212529;
-            margin: 0;
-        }
-
-        /* Form Styling */
+        .info-value { font-size: 1.05rem; font-weight: 600; color: #212529; margin: 0; }
+        .info-value.empty { color: #adb5bd; font-style: italic; font-weight: 400; }
         .form-floating > label { color: #6c757d; }
         .form-control:focus {
             border-color: #2ecc71;
             box-shadow: 0 0 0 0.25rem rgba(46, 204, 113, 0.15);
         }
-
-        /* Module Specific Green Button */
         .btn-theme-green {
-            background-color: #2ecc71;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            padding: 14px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.2);
+            background-color: #2ecc71; color: white; border: none;
+            border-radius: 10px; padding: 14px; font-weight: 600;
+            transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(46,204,113,0.2);
         }
-        .btn-theme-green:hover { 
-            background-color: #27ae60; 
-            color: white;
-            transform: translateY(-2px); 
-            box-shadow: 0 6px 15px rgba(46, 204, 113, 0.35);
+        .btn-theme-green:hover {
+            background-color: #27ae60; color: white;
+            transform: translateY(-2px); box-shadow: 0 6px 15px rgba(46,204,113,0.35);
         }
     </style>
 </head>
@@ -92,43 +60,51 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-5 shadow-sm">
         <div class="container">
             <a class="navbar-brand" href="/dashboard"><i class="bi bi-hospital me-2"></i>MedCare Pro</a>
-            <div class="ms-auto">
-                <a href="/patients/search" class="btn btn-outline-light btn-sm rounded-pill px-4">
+            <div class="ms-auto d-flex gap-2">
+                <!-- Staff see a back-to-search button; patients go to dashboard -->
+                <a th:if="${userRole != 'PATIENT'}" href="/patients/search"
+                   class="btn btn-outline-light btn-sm rounded-pill px-4">
                     <i class="bi bi-search me-2"></i>Back to Search
+                </a>
+                <a th:if="${userRole == 'PATIENT'}" href="/dashboard"
+                   class="btn btn-outline-light btn-sm rounded-pill px-4">
+                    <i class="bi bi-house-door me-2"></i>Dashboard
                 </a>
             </div>
         </div>
     </nav>
 
     <div class="container">
-        
+
         <div class="row mb-4">
             <div class="col-12 text-center">
-                <div class="icon-box">
-                    <i class="bi bi-person-lines-fill"></i>
-                </div>
+                <div class="icon-box"><i class="bi bi-person-lines-fill"></i></div>
                 <h2 class="fw-bold text-dark mb-1">Patient Profile</h2>
-                <p class="text-muted">View records and update demographic information.</p>
+                <p class="text-muted">View and update your demographic information.</p>
+            </div>
+        </div>
+
+        <!-- Alerts -->
+        <div class="row g-4 justify-content-center mb-2">
+            <div class="col-12 col-lg-10">
+                <div th:if="${successMessage}" class="alert alert-success border-0 rounded-3 shadow-sm" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i><span th:text="${successMessage}"></span>
+                </div>
+                <div th:if="${alertMessage}" class="alert alert-danger border-0 rounded-3 shadow-sm" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${alertMessage}"></span>
+                </div>
             </div>
         </div>
 
         <div class="row g-4 justify-content-center">
-            
-            <div class="col-12 col-lg-10">
-                <div th:if="${successMessage}" class="alert alert-success border-0 rounded-3 shadow-sm mb-0" role="alert">
-                    <i class="bi bi-check-circle-fill me-2"></i><span th:text="${successMessage}"></span>
-                </div>
-                <div th:if="${alertMessage}" class="alert alert-danger border-0 rounded-3 shadow-sm mb-0" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${alertMessage}"></span>
-                </div>
-            </div>
 
+            <!-- LEFT: Patient Information -->
             <div class="col-lg-5 col-md-10">
                 <div class="card glass-card">
                     <h5 class="fw-bold text-dark mb-4 border-bottom pb-3">
                         <i class="bi bi-info-circle text-muted me-2"></i>Information
                     </h5>
-                    
+
                     <div class="row g-3 mb-4">
                         <div class="col-sm-6">
                             <div class="info-box">
@@ -139,7 +115,11 @@
                         <div class="col-sm-6">
                             <div class="info-box">
                                 <div class="info-label">Date of Birth</div>
-                                <p class="info-value" th:text="${patient.dateOfBirth}"></p>
+                                <!-- Show placeholder text if null, not an empty box -->
+                                <p class="info-value"
+                                   th:classappend="${patient.dateOfBirth == null} ? 'empty'"
+                                   th:text="${patient.dateOfBirth != null} ? ${patient.dateOfBirth} : 'Not set'">
+                                </p>
                             </div>
                         </div>
                         <div class="col-12">
@@ -148,37 +128,71 @@
                                 <p class="info-value" th:text="${patient.name}"></p>
                             </div>
                         </div>
+                        <div class="col-12">
+                            <div class="info-box">
+                                <div class="info-label">Contact Info</div>
+                                <p class="info-value"
+                                   th:classappend="${patient.contactInfo == null} ? 'empty'"
+                                   th:text="${patient.contactInfo != null} ? ${patient.contactInfo} : 'Not set'">
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="info-box">
+                                <div class="info-label">Insurance Info</div>
+                                <p class="info-value"
+                                   th:classappend="${patient.insuranceInfo == null} ? 'empty'"
+                                   th:text="${patient.insuranceInfo != null} ? ${patient.insuranceInfo} : 'Not set'">
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="d-grid mt-auto">
-                        <a th:href="@{/patients/{id}/history(id=${patient.patientId})}" class="btn btn-outline-secondary btn-lg fw-bold rounded-3">
+                        <a th:href="@{/patients/{id}/history(id=${patient.patientId})}"
+                           class="btn btn-outline-secondary btn-lg fw-bold rounded-3">
                             <i class="bi bi-clipboard2-pulse me-2"></i>View Medical History
                         </a>
                     </div>
                 </div>
             </div>
 
+            <!-- RIGHT: Update Demographics — only the patient themselves (or admin) can submit this -->
             <div class="col-lg-5 col-md-10">
                 <div class="card glass-card">
                     <h5 class="fw-bold text-dark mb-4 border-bottom pb-3">
                         <i class="bi bi-pencil-square text-muted me-2"></i>Update Demographics
                     </h5>
-                    
+
+                    <!-- Read-only notice for staff viewing someone else's profile -->
+                    <div th:if="${userRole != 'PATIENT' and userRole != 'ADMIN'}"
+                         class="alert alert-light border text-muted small rounded-3 mb-4">
+                        <i class="bi bi-eye me-2"></i>
+                        Only the patient can update their own contact and insurance details.
+                    </div>
+
                     <form method="post" th:action="@{/patients/{id}/update(id=${patient.patientId})}">
-                        
+
                         <div class="form-floating mb-3">
-                            <input type="text" class="form-control" id="contactInfo" name="contactInfo" 
-                                   th:value="${patient.contactInfo}" placeholder="Phone / Email" required>
+                            <input type="text" class="form-control" id="contactInfo" name="contactInfo"
+                                   th:value="${patient.contactInfo}"
+                                   placeholder="Phone / Email"
+                                   th:disabled="${userRole != 'PATIENT' and userRole != 'ADMIN'}"
+                                   required>
                             <label for="contactInfo"><i class="bi bi-telephone me-2"></i>Contact Info</label>
                         </div>
-                        
-                        <div class="form-floating mb-4">
-                            <input type="text" class="form-control" id="insuranceInfo" name="insuranceInfo" 
-                                   th:value="${patient.insuranceInfo}" placeholder="Provider" required>
+
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="insuranceInfo" name="insuranceInfo"
+                                   th:value="${patient.insuranceInfo}"
+                                   placeholder="Provider / Policy number"
+                                   th:disabled="${userRole != 'PATIENT' and userRole != 'ADMIN'}"
+                                   required>
                             <label for="insuranceInfo"><i class="bi bi-shield-check me-2"></i>Insurance Info</label>
                         </div>
 
-                        <div class="d-grid mt-4">
+                        <!-- Only show Save button for patient / admin -->
+                        <div th:if="${userRole == 'PATIENT' or userRole == 'ADMIN'}" class="d-grid mt-4">
                             <button type="submit" class="btn btn-theme-green btn-lg">
                                 <i class="bi bi-floppy me-2"></i>Save Changes
                             </button>
