@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 
 import com.pesu.ooad.healthcare.model.User;
 import com.pesu.ooad.healthcare.repository.UserRepository;
+import com.pesu.ooad.healthcare.model.Patient;
+import com.pesu.ooad.healthcare.repository.PatientRepository;
 
 @Service
 public class AuthService {
@@ -15,14 +17,17 @@ public class AuthService {
     private final UserRepository userRepository;
     private final UserFactory userFactory;
     private final NotificationFacade notificationFacade;
+    private final PatientRepository patientRepository;
 
     @Autowired
     public AuthService(UserRepository userRepository,
                        UserFactory userFactory,
-                       NotificationFacade notificationFacade) {
+                       NotificationFacade notificationFacade,
+                       PatientRepository patientRepository) {
         this.userRepository     = userRepository;
         this.userFactory        = userFactory;
         this.notificationFacade = notificationFacade;
+        this.patientRepository  = patientRepository;
     }
 
     // =========================
@@ -41,6 +46,12 @@ public class AuthService {
 
         // Save user
         User saved = userRepository.save(newUser);
+
+        // Also create a patient record if role is PATIENT
+        if ("PATIENT".equalsIgnoreCase(type)) {
+            Patient patientRecord = new Patient(name, null, email, null);
+            patientRepository.save(patientRecord);
+        }
 
         // Facade Pattern (correct method signature)
         notificationFacade.notifyUser(
