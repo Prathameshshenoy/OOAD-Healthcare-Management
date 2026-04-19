@@ -44,11 +44,7 @@ public class PatientService {
     // ------------------------------------------------------------------ //
 
     public Optional<Patient> searchPatient(Long patientId) {
-        DatabaseConnection db = DatabaseConnection.getInstance();
-        db.connect();
-        Optional<Patient> result = patientRepository.findByPatientId(patientId);
-        db.disconnect();
-        return result;
+        return patientRepository.findByPatientId(patientId);
     }
 
     // ------------------------------------------------------------------ //
@@ -57,11 +53,7 @@ public class PatientService {
     // ------------------------------------------------------------------ //
 
     public List<Patient> searchPatientByName(String name) {
-        DatabaseConnection db = DatabaseConnection.getInstance();
-        db.connect();
-        List<Patient> results = patientRepository.findByNameContainingIgnoreCase(name);
-        db.disconnect();
-        return results;
+        return patientRepository.findByNameContainingIgnoreCase(name);
     }
 
     // ------------------------------------------------------------------ //
@@ -69,12 +61,8 @@ public class PatientService {
     // ------------------------------------------------------------------ //
 
     public Patient getPatientProfile(Long patientId) {
-        DatabaseConnection db = DatabaseConnection.getInstance();
-        db.connect();
-        Patient patient = patientRepository.findByPatientId(patientId)
+        return patientRepository.findByPatientId(patientId)
                 .orElseThrow(() -> new IllegalArgumentException("Patient Not Found"));
-        db.disconnect();
-        return patient;
     }
 
     // ------------------------------------------------------------------ //
@@ -85,9 +73,6 @@ public class PatientService {
     // ------------------------------------------------------------------ //
 
     public Patient updatePatientProfile(Long patientId, String contactInfo, String insuranceInfo) {
-        DatabaseConnection db = DatabaseConnection.getInstance();
-        db.connect();
-
         // Fetch patient object
         Patient patient = patientRepository.findByPatientId(patientId)
                 .orElseThrow(() -> new IllegalArgumentException("Patient Not Found"));
@@ -96,10 +81,7 @@ public class PatientService {
         patient.updateDemographics(contactInfo, insuranceInfo);
 
         // Save to DB
-        Patient updated = patientRepository.save(patient);
-
-        db.disconnect();
-        return updated;
+        return patientRepository.save(patient);
     }
 
     // ------------------------------------------------------------------ //
@@ -108,11 +90,7 @@ public class PatientService {
     // ------------------------------------------------------------------ //
 
     public List<MedicalRecord> getMedicalHistory(Long patientId) {
-        DatabaseConnection db = DatabaseConnection.getInstance();
-        db.connect();
-        List<MedicalRecord> records = medicalRecordRepository.findByPatient_PatientId(patientId);
-        db.disconnect();
-        return records;
+        return medicalRecordRepository.findByPatient_PatientId(patientId);
     }
 
     // ------------------------------------------------------------------ //
@@ -122,9 +100,6 @@ public class PatientService {
 
     public MedicalRecord addMedicalRecord(Long patientId, Long linkedAppointmentId,
                                           String consultationNotes, String allergies) {
-        DatabaseConnection db = DatabaseConnection.getInstance();
-        db.connect();
-
         // Fetch patient
         Patient patient = patientRepository.findByPatientId(patientId)
                 .orElseThrow(() -> new IllegalArgumentException("Patient Not Found"));
@@ -134,9 +109,6 @@ public class PatientService {
                 patient, linkedAppointmentId, consultationNotes, allergies, LocalDate.now());
 
         // Update EHR in DB
-        MedicalRecord saved = medicalRecordRepository.save(record);
-
-        db.disconnect();
-        return saved;
+        return medicalRecordRepository.save(record);
     }
 }
