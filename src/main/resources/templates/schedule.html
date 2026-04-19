@@ -18,7 +18,24 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.08);
             backdrop-filter: blur(10px);
             overflow: hidden;
+            padding: 2rem;
         }
+
+        /* Orange Accent Icon Box for Schedule Module */
+        .icon-box {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            background: #fdf3e8;
+            color: #f39c12;
+            margin-bottom: 15px;
+            font-size: 28px;
+        }
+
+        /* Modern Table Styling */
         .table { margin-bottom: 0; }
         .table thead th {
             background-color: #f8f9fa;
@@ -26,33 +43,46 @@
             font-weight: 600;
             border-bottom: 2px solid #e9ecef;
             padding: 15px;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
         }
-        .table tbody td { padding: 15px; vertical-align: middle; }
-        .badge { padding: 8px 12px; font-weight: 500; letter-spacing: 0.5px; }
+        .table tbody td { 
+            padding: 15px; 
+            vertical-align: middle; 
+            font-size: 0.95rem;
+        }
+        
+        /* Modern Opacity Badges */
+        .status-badge { padding: 8px 12px; font-weight: 600; letter-spacing: 0.5px; font-size: 0.8rem; }
     </style>
 </head>
 <body>
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-5 shadow-sm">
         <div class="container">
-            <a class="navbar-brand" href="#"><i class="bi bi-hospital me-2"></i>MedCare Pro</a>
+            <a class="navbar-brand" href="/dashboard"><i class="bi bi-hospital me-2"></i>MedCare Pro</a>
             <div class="ms-auto">
-                <a href="/appointments/book" class="btn btn-outline-light btn-sm rounded-pill px-4"><i class="bi bi-arrow-left me-2"></i>Back to Booking</a>
+                <a href="/dashboard" class="btn btn-outline-light btn-sm rounded-pill px-4">
+                    <i class="bi bi-house-door me-2"></i>Back to Dashboard
+                </a>
             </div>
         </div>
     </nav>
 
-    <div class="container">
+    <div class="container mb-5">
+        
         <div class="row mb-4">
-            <div class="col-12 d-flex justify-content-between align-items-center">
-                <div>
-                    <h2 class="fw-bold text-dark mb-0">Daily Schedule</h2>
-                    <p class="text-muted">Manage patient appointments and availability.</p>
+            <div class="col-12 text-center">
+                <div class="icon-box">
+                    <i class="bi bi-calendar-week"></i>
                 </div>
+                <h2 class="fw-bold text-dark mb-1">Daily Schedule</h2>
+                <p class="text-muted">Manage patient appointments and daily availability.</p>
             </div>
         </div>
 
-        <div class="card glass-card">
+        <div class="card glass-card p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle text-center">
                     <thead>
@@ -68,25 +98,47 @@
                     <tbody>
                         <tr th:each="appt : ${appointments}">
                             <td class="fw-bold text-primary" th:text="'#' + ${appt.id}"></td>
-                            <td th:text="${appt.patientId}"></td>
-                            <td><i class="bi bi-calendar2-day text-muted me-2"></i><span th:text="${appt.appointmentDate}"></span></td>
-                            <td><i class="bi bi-clock text-muted me-2"></i><span th:text="${appt.appointmentTime}"></span></td>
+                            
+                            <td class="text-muted fw-semibold" th:text="${appt.patientId}"></td>
+                            
                             <td>
-                                <span class="badge rounded-pill bg-warning text-dark border" th:if="${appt.status == 'Pending'}"><i class="bi bi-hourglass-split me-1"></i>Pending</span>
-                                <span class="badge rounded-pill bg-success" th:if="${appt.status == 'Confirmed'}"><i class="bi bi-check-circle me-1"></i>Confirmed</span>
-                                <span class="badge rounded-pill bg-danger" th:if="${appt.status == 'Cancelled'}"><i class="bi bi-x-circle me-1"></i>Cancelled</span>
+                                <i class="bi bi-calendar2-day text-muted me-2"></i>
+                                <span th:text="${appt.appointmentDate}" class="fw-medium text-dark"></span>
                             </td>
+                            
+                            <td>
+                                <i class="bi bi-clock text-muted me-2"></i>
+                                <span th:text="${appt.appointmentTime}" class="fw-medium text-dark"></span>
+                            </td>
+                            
+                            <td>
+                                <span class="badge rounded-pill bg-warning bg-opacity-10 text-warning-emphasis border border-warning border-opacity-25 status-badge" th:if="${appt.status == 'Pending'}">
+                                    <i class="bi bi-hourglass-split me-1"></i>Pending
+                                </span>
+                                <span class="badge rounded-pill bg-success bg-opacity-10 text-success border border-success border-opacity-25 status-badge" th:if="${appt.status == 'Confirmed'}">
+                                    <i class="bi bi-check-circle-fill me-1"></i>Confirmed
+                                </span>
+                                <span class="badge rounded-pill bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 status-badge" th:if="${appt.status == 'Cancelled'}">
+                                    <i class="bi bi-x-circle-fill me-1"></i>Cancelled
+                                </span>
+                            </td>
+                            
                             <td>
                                 <form th:if="${appt.status != 'Cancelled'}" action="/appointments/cancel" method="post" class="m-0">
                                     <input type="hidden" name="appointmentId" th:value="${appt.id}"/>
-                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 shadow-sm"><i class="bi bi-trash3"></i></button>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 shadow-sm fw-semibold">
+                                        <i class="bi bi-x-lg me-1"></i>Cancel
+                                    </button>
                                 </form>
-                                <span th:if="${appt.status == 'Cancelled'}" class="text-muted small"><i class="bi bi-dash-lg"></i></span>
+                                <span th:if="${appt.status == 'Cancelled'}" class="text-muted small fw-semibold">
+                                    <i class="bi bi-dash-lg"></i>
+                                </span>
                             </td>
                         </tr>
+                        
                         <tr th:if="${#lists.isEmpty(appointments)}">
                             <td colspan="6" class="text-center text-muted py-5">
-                                <i class="bi bi-calendar-x display-4 d-block mb-3 text-light"></i>
+                                <i class="bi bi-calendar2-x display-4 d-block mb-3 text-light"></i>
                                 No appointments found. Your schedule is clear!
                             </td>
                         </tr>
@@ -94,6 +146,7 @@
                 </table>
             </div>
         </div>
+        
     </div>
 
 </body>

@@ -2,89 +2,195 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8"/>
-    <title>Patient Search — Healthcare Management</title>
+    <title>Patient Search | MedCare Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 16px; }
-        h1 { color: #1a3a5c; margin-bottom: 8px; font-size: 1.8rem; }
-        .subtitle { color: #5a7a9a; margin-bottom: 32px; font-size: 0.95rem; }
-        .card { background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); padding: 32px; width: 100%; max-width: 560px; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 6px; }
-        input { width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; outline: none; transition: border 0.2s; }
-        input:focus { border-color: #3b82f6; }
-        .divider { text-align: center; color: #94a3b8; margin: 18px 0; font-size: 0.85rem; }
-        button { width: 100%; padding: 11px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-        button:hover { background: #1d4ed8; }
-        .alert-danger { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 0.9rem; }
-        .results-table { width: 100%; border-collapse: collapse; margin-top: 28px; }
-        .results-table th { background: #eff6ff; color: #1e40af; font-size: 0.82rem; text-transform: uppercase; padding: 10px 12px; text-align: left; border-bottom: 2px solid #bfdbfe; }
-        .results-table td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; color: #334155; }
-        .results-table tr:hover td { background: #f8fafc; }
-        a.btn-link { color: #2563eb; font-weight: 600; text-decoration: none; font-size: 0.85rem; }
-        a.btn-link:hover { text-decoration: underline; }
-        nav { margin-bottom: 24px; align-self: flex-start; }
-        nav a { color: #2563eb; text-decoration: none; font-size: 0.9rem; }
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding-bottom: 3rem;
+        }
+        .navbar-brand { font-weight: 700; letter-spacing: 1px; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            backdrop-filter: blur(10px);
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Green Accent Icon Box for Patient Module */
+        .icon-box {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            background: #eafaf1;
+            color: #2ecc71;
+            margin-bottom: 15px;
+            font-size: 28px;
+        }
+
+        /* Form Styling */
+        .form-floating > label { color: #6c757d; }
+        .form-control:focus {
+            border-color: #2ecc71;
+            box-shadow: 0 0 0 0.25rem rgba(46, 204, 113, 0.15);
+        }
+
+        /* Module Specific Green Button */
+        .btn-theme-green {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.2);
+        }
+        .btn-theme-green:hover { 
+            background-color: #27ae60; 
+            color: white;
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 15px rgba(46, 204, 113, 0.35);
+        }
+
+        /* Modern Table Styling */
+        .table { margin-bottom: 0; }
+        .table thead th {
+            background-color: #f8f9fa;
+            color: #495057;
+            font-weight: 600;
+            border-bottom: 2px solid #e9ecef;
+            padding: 15px;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        .table tbody td { 
+            padding: 15px; 
+            vertical-align: middle; 
+            font-size: 0.95rem;
+        }
     </style>
 </head>
 <body>
 
-<nav><a href="/">← Home</a></nav>
-
-<h1>🔍 Patient Search</h1>
-<p class="subtitle">Search patient by ID or Name to view their profile and EHR.</p>
-
-<div class="card">
-
-    <!-- Activity Diagram: showAlert("Patient Not Found") -->
-    <div th:if="${alertMessage}" class="alert-danger" th:text="${alertMessage}"></div>
-
-    <!-- Search by Patient ID -->
-    <form method="post" th:action="@{/patients/search}">
-        <div class="form-group">
-            <label for="patientId">Patient ID</label>
-            <input type="number" id="patientId" name="patientId" placeholder="e.g. 1001" min="1"/>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-5 shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="/dashboard"><i class="bi bi-hospital me-2"></i>MedCare Pro</a>
+            <div class="ms-auto">
+                <a href="/dashboard" class="btn btn-outline-light btn-sm rounded-pill px-4">
+                    <i class="bi bi-house-door me-2"></i>Back to Dashboard
+                </a>
+            </div>
         </div>
-        <button type="submit">Search by ID</button>
-    </form>
+    </nav>
 
-    <div class="divider">— OR —</div>
-
-    <!-- Search by Name -->
-    <form method="post" th:action="@{/patients/search}">
-        <div class="form-group">
-            <label for="name">Patient Name</label>
-            <input type="text" id="name" name="name" placeholder="e.g. John Doe"/>
+    <div class="container">
+        
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <div class="icon-box">
+                    <i class="bi bi-search"></i>
+                </div>
+                <h2 class="fw-bold text-dark mb-1">Patient Search</h2>
+                <p class="text-muted">Locate a patient by their system ID or full name.</p>
+            </div>
         </div>
-        <button type="submit">Search by Name</button>
-    </form>
 
-    <!-- Search results (name search returns multiple) -->
-    <div th:if="${patients}">
-        <table class="results-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Date of Birth</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="p : ${patients}">
-                    <td th:text="${p.patientId}"></td>
-                    <td th:text="${p.name}"></td>
-                    <td th:text="${p.dateOfBirth}"></td>
-                    <td>
-                        <a class="btn-link" th:href="@{/patients/{id}/profile(id=${p.patientId})}">View Profile</a>
-                        &nbsp;|&nbsp;
-                        <a class="btn-link" th:href="@{/patients/{id}/history(id=${p.patientId})}">EHR</a>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                
+                <div th:if="${alertMessage}" class="alert alert-danger border-0 rounded-3 shadow-sm mb-4" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${alertMessage}"></span>
+                </div>
+
+                <div class="card glass-card">
+                    <div class="row g-4">
+                        
+                        <div class="col-md-6 border-end-md">
+                            <h6 class="fw-bold text-dark mb-3"><i class="bi bi-hash text-muted me-2"></i>Search by ID</h6>
+                            <form method="post" th:action="@{/patients/search}">
+                                <div class="form-floating mb-3">
+                                    <input type="number" class="form-control" id="patientId" name="patientId" placeholder="e.g. 1001" min="1">
+                                    <label for="patientId">Patient ID</label>
+                                </div>
+                                <button type="submit" class="btn btn-theme-green w-100">
+                                    <i class="bi bi-search me-2"></i>Find by ID
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-dark mb-3"><i class="bi bi-type text-muted me-2"></i>Search by Name</h6>
+                            <form method="post" th:action="@{/patients/search}">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="name" name="name" placeholder="e.g. John Doe">
+                                    <label for="name">Patient Name</label>
+                                </div>
+                                <button type="submit" class="btn btn-theme-green w-100">
+                                    <i class="bi bi-search me-2"></i>Find by Name
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="row justify-content-center mt-4" th:if="${patients}">
+            <div class="col-lg-10">
+                <div class="card glass-card p-0">
+                    <div class="p-4 border-bottom">
+                        <h5 class="fw-bold text-dark mb-0"><i class="bi bi-card-list text-muted me-2"></i>Search Results</h5>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle text-center mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Patient ID</th>
+                                    <th class="text-start">Name</th>
+                                    <th>Date of Birth</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="p : ${patients}">
+                                    <td class="fw-bold text-success" th:text="'#' + ${p.patientId}"></td>
+                                    <td class="text-start fw-semibold text-dark" th:text="${p.name}"></td>
+                                    <td>
+                                        <i class="bi bi-calendar-event text-muted me-2"></i><span th:text="${p.dateOfBirth}"></span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <a th:href="@{/patients/{id}/profile(id=${p.patientId})}" class="btn btn-sm btn-outline-success rounded-pill px-3 shadow-sm fw-semibold">
+                                                <i class="bi bi-person-badge me-1"></i>Profile
+                                            </a>
+                                            <a th:href="@{/patients/{id}/history(id=${p.patientId})}" class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm fw-semibold">
+                                                <i class="bi bi-clipboard2-pulse me-1"></i>EHR
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-</div>
 </body>
 </html>
