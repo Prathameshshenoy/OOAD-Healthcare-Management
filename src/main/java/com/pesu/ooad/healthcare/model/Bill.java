@@ -98,9 +98,9 @@ public class Bill {
      * @throws IllegalStateException if the bill is not in the PENDING_PAYMENT state.
      */
     public void startProcessing() {
-        if (this.status != BillingStatus.PENDING_PAYMENT) {
+        if (this.status != BillingStatus.PENDING_PAYMENT && this.status != BillingStatus.PROCESSING) {
             throw new IllegalStateException(
-                "startProcessing() requires status PENDING_PAYMENT. Current: " + this.status);
+                "startProcessing() requires status PENDING_PAYMENT or PROCESSING. Current: " + this.status);
         }
         this.status = BillingStatus.PROCESSING;
     }
@@ -129,6 +129,8 @@ public class Bill {
         boolean success = strategy.pay(this.amount);
         if (success) {
             this.status = BillingStatus.PAID;
+        } else {
+            this.status = BillingStatus.PENDING_PAYMENT;
         }
         return success;
     }

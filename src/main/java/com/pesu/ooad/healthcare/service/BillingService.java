@@ -6,6 +6,8 @@ import com.pesu.ooad.healthcare.repository.BillRepository;
 import com.pesu.ooad.healthcare.strategy.CashPayment;
 import com.pesu.ooad.healthcare.strategy.CreditCardPayment;
 import com.pesu.ooad.healthcare.strategy.PaymentStrategy;
+import com.pesu.ooad.healthcare.repository.AppointmentRepository;
+import com.pesu.ooad.healthcare.model.Appointment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class BillingService {
 
     private final BillRepository billRepository;
+    private final AppointmentRepository appointmentRepository;
     private final NotificationFacade notificationFacade;
     private final CreditCardPayment creditCardPayment;
     private final CashPayment cashPayment;
@@ -42,13 +45,21 @@ public class BillingService {
      */
     @Autowired
     public BillingService(BillRepository billRepository,
+                          AppointmentRepository appointmentRepository,
                           NotificationFacade notificationFacade,
                           CreditCardPayment creditCardPayment,
                           CashPayment cashPayment) {
         this.billRepository = billRepository;
+        this.appointmentRepository = appointmentRepository;
         this.notificationFacade = notificationFacade;
         this.creditCardPayment = creditCardPayment;
         this.cashPayment = cashPayment;
+    }
+
+    private Long getPatientIdForAppointment(Long appointmentId) {
+        return appointmentRepository.findById(appointmentId)
+            .map(Appointment::getPatientId)
+            .orElse(appointmentId); // fallback
     }
 
     // -------------------------------------------------------------------------
@@ -91,8 +102,9 @@ public class BillingService {
                            + " | Status: " + bill.getStatus());
 
         // Notify patient — transitions INVOICE_GENERATED → PENDING_PAYMENT (State Machine)
+        Long patientId = getPatientIdForAppointment(appointmentId);
         notificationFacade.notifyUser(
-            appointmentId,
+            patientId,
             String.format("Your invoice for appointment #%d has been generated. Amount due: ₹%.2f",
                           appointmentId, amount)
         );
@@ -145,14 +157,15 @@ public class BillingService {
         if (!success) {
             throw new IllegalStateException(
                 "Payment failed for bill #" + billId + " using " + paymentMethod
-                + ". Bill remains in PROCESSING state.");
+                + ". Please try again.");
         }
 
         System.out.println("✅ [BILLING] Bill #" + billId + " status: " + bill.getStatus());
 
         // Notify patient of successful payment (receipt step in Activity Diagram)
+        Long patientId = getPatientIdForAppointment(bill.getAppointmentId());
         notificationFacade.notifyUser(
-            bill.getAppointmentId(),
+            patientId,
             String.format("Payment of ₹%.2f received for bill #%d. Thank you!", bill.getAmount(), billId)
         );
 
