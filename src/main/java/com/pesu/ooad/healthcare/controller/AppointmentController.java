@@ -1,6 +1,6 @@
 package com.pesu.ooad.healthcare.controller;
 
-import com.pesu.ooad.healthcare.model.Appointment;          // ← NEW
+import com.pesu.ooad.healthcare.model.Appointment;
 import com.pesu.ooad.healthcare.model.User;
 import com.pesu.ooad.healthcare.repository.UserRepository;
 import com.pesu.ooad.healthcare.service.AppointmentService;
@@ -14,7 +14,7 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Map;                                        // ← NEW
+import java.util.Map;
 
 @Controller
 @RequestMapping("/appointments")
@@ -79,6 +79,7 @@ public class AppointmentController {
             List<Appointment> all = appointmentService.getAllAppointments();
             model.addAttribute("appointments", all);
             model.addAttribute("canManage", true);
+            
             Map<Long, String> patientNames = new java.util.HashMap<>();
             for (Appointment a : all) {
                 if (!patientNames.containsKey(a.getPatientId())) {
@@ -106,6 +107,7 @@ public class AppointmentController {
             List<Appointment> appts = appointmentService.getDoctorSchedule(assignedDoctorId);
             model.addAttribute("appointments", appts);
             model.addAttribute("canManage", true);
+            
             Map<Long, String> patientNames = new java.util.HashMap<>();
             for (Appointment a : appts) {
                 if (!patientNames.containsKey(a.getPatientId())) {
@@ -114,6 +116,7 @@ public class AppointmentController {
                 }
             }
             model.addAttribute("patientNames", patientNames);
+            
             // Show which doctor they're managing
             userRepository.findById(assignedDoctorId)
                 .ifPresent(d -> model.addAttribute("assignedDoctorName", d.getName()));
@@ -127,7 +130,20 @@ public class AppointmentController {
         if (doctorId == null) {
             return "redirect:/login";
         }
-        model.addAttribute("appointments", appointmentService.getDoctorSchedule(doctorId));
+        
+        List<Appointment> docAppts = appointmentService.getDoctorSchedule(doctorId);
+        model.addAttribute("appointments", docAppts);
+        
+        // --- FIX: Added name mapping for the Doctor view too! ---
+        Map<Long, String> patientNames = new java.util.HashMap<>();
+        for (Appointment a : docAppts) {
+            if (!patientNames.containsKey(a.getPatientId())) {
+                userRepository.findById(a.getPatientId())
+                    .ifPresent(u -> patientNames.put(u.getId(), u.getName()));
+            }
+        }
+        model.addAttribute("patientNames", patientNames);
+        
         model.addAttribute("canManage", false); // doctors cannot cancel or complete
         return "schedule";
     }
@@ -138,7 +154,6 @@ public class AppointmentController {
         return "redirect:/appointments/schedule";
     }
 
-    // ← NEW: Mark consultation as complete and trigger billing
     /**
      * Called from the receptionist's billing dashboard when a consultation is done.
      * Accepts appointmentId + consultationFee, marks the appointment "Completed",
@@ -154,7 +169,7 @@ public class AppointmentController {
             HttpSession session) {
 
         String role = (String) session.getAttribute("userRole");
-        if (role == null || (!"ADMIN".equals(role) && !"RECEPTIONIST".equals(role))) { // DOCTOR intentionally excluded
+        if (role == null || (!"ADMIN".equals(role) && !"RECEPTIONIST".equals(role))) { 
             return Map.of("error", "Access denied.");
         }
 
