@@ -271,7 +271,7 @@ public boolean processPayment(PaymentStrategy strategy) {
 
 ## ⚠️ Anti-Patterns Identified & Avoided
 
-### Project Management Anti-Pattern — *God Class* (avoided)
+### Project Management Anti-Pattern — *God Class/Blob* (avoided)
 A God Class is a single class that accumulates too many responsibilities, becoming the central hub that everything else depends on. An early draft of this project had a single `HealthcareService` class handling authentication, appointment booking, patient management, and billing in one file. This was refactored into `AuthService`, `AppointmentService`, `PatientService`, and `BillingService` — each with a single focused responsibility — before any code was committed.
 
 ### Architecture Anti-Pattern — *Bypassing the MVC Layers* (avoided)
